@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="p-3">
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col-md-6 mx-auto mb-3">
+                <h2>About</h2>
+                <hr />
+                <p>EventSphere is an interactive platform designed to help people discover, 
+                    plan, and coordinate attendance at local events — all through a dynamic 
+                    map-based interface.</p>
+
+                <p>Whether you're an <strong>event organizer</strong> promoting your 
+                    next big gathering, an <strong>attendee</strong> looking for exciting things to 
+                    do nearby, or an <strong>admin</strong> managing event data, EventSphere brings 
+                    everything together in one cohesive experience.</p>
+
+                <p>With smart integrations like <strong>Google Maps</strong> and <strong>Google 
+                    Calendar APIs</strong>, EventSphere makes it easy to visualize event locations, 
+                    plan trips efficiently, and stay organized. The platform also incorporates <strong>cost 
+                    and travel estimation</strong> tools, allowing users to budget their outings and coordinate 
+                    with friends effortlessly.</p>
+
+                <p>EventSphere encourages social coordination and smart travel planning, transforming 
+                    the way people engage with local events. By combining discovery, planning, and 
+                    coordination into one place, it makes attending events not just easier — but more 
+                    enjoyable and informed.</p>
+            
+            </div>
+            <div class="col-md-6 mx-auto mb-3 text-center">
+                <img src="{% static 'img/about.jpg' %}"
+                    class="max-width-100"
+                    alt="about" />
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

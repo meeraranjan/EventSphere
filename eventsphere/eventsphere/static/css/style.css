@@ -1,0 +1,34 @@
+.bg-index {
+  background: url("/static/img/background.jpg") no-repeat fixed;
+  background-size: 100% auto;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+}
+
+.navbar.bg-dark {
+    background-color: #43240A !important; /* brown */
+}
+
+footer.bg-dark {
+    background-color: #43240A !important; /* brown */
+}
+
+/* Header styling */
+.masthead h2 {
+    color: white; /* heading in white */
+}
+
+.masthead p {
+    color: #8B4513; /* brown text for subheading */
+}
+
+/* Content section text */
+.centered-heading h4 {
+    color: #8B4513; /* brown text */
+}
