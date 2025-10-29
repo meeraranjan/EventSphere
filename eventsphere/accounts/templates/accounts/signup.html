@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Sign Up</h3>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">{{ form.password1.label }}</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="text-danger small">{{ form.password1.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">{{ form.password2.label }}</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="text-danger small">{{ form.password2.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">{{ form.user_type.label }}</label>
+                    {{ form.user_type }}
+                    {% if form.user_type.errors %}
+                        <div class="text-danger small">{{ form.user_type.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+            <p class="text-center">
+                Already have an account?
+                <a href="{% url 'login' %}">Log in here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
