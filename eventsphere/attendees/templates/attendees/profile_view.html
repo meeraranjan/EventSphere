@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container my-5">
+    <div class="card shadow-sm p-4">
+        <h2 class="mb-4">Profile</h2>
+        <p><strong>Name:</strong> {{ attendee.name }}</p>
+        <p><strong>Age:</strong> {{ attendee.age }}</p>
+        <p><strong>Email:</strong> {{ attendee.email }}</p>
+        <p><strong>Phone:</strong> {{ attendee.phone_number }}</p>
+
+        <a href="{% url 'profile_edit' attendee.id %}" class="btn btn-primary mt-3">Edit</a>
+    </div>
+</div>
+
+{% endblock %}

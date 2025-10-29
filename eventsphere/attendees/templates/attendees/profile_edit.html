@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container my-5">
+    <div class="card shadow-sm p-4">
+        <h2 class="mb-4">Edit Profile</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'profile_view' form.instance.id %}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
