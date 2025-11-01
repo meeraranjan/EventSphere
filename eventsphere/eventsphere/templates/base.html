@@ -37,7 +37,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'home.about' %}active{% endif %}"
                                 href="{% url 'home.about' %}">About</a>
-                        </li>                    
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -54,8 +54,8 @@
                 <div class="col-md-6 mb-3">
                     <h5 class="text-uppercase">Quick Links</h5>
                     <ul class="list-unstyled">
-                    <li><a href="{% url 'home.index' %}" class="text-light text-decoration-none">Home</a></li>
-                    <li><a href="{% url 'home.about' %}" class="text-light text-decoration-none">About</a></li>
+                        <li><a href="{% url 'home.index' %}" class="text-light text-decoration-none">Home</a></li>
+                        <li><a href="{% url 'home.about' %}" class="text-light text-decoration-none">About</a></li>
                     </ul>
                 </div>
 
