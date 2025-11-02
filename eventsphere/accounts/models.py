@@ -16,5 +16,4 @@ class UserProfile(models.Model):
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='ATTENDEE')
 
     def __str__(self):
-        org_name = self.organization_name if self.organization_name else "No Organization"
-        return f"{org_name} ({self.user.username})"
+        return f"{self.organization_name} ({self.user.username})"

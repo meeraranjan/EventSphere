@@ -7,7 +7,11 @@ class EventOrganizer(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     organization_name = models.CharField(max_length=255)
     contact_email = models.EmailField(blank=True, default='')
+<<<<<<< HEAD
     phone_number = models.CharField(max_length=20, blank=True, default='')
+=======
+    phone_number = models.CharField(max_length=20)
+>>>>>>> 3985b4336692e41465ce14f4512ad10086610b5f
 
     def __str__(self):
         return f"{self.organization_name} ({self.profile.user.username})"

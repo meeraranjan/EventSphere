@@ -26,7 +26,7 @@ class SignUpForm(UserCreationForm):
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'user_type', 'organization_name', 'age']
+        fields = ['username', 'email', 'password1', 'password2', 'user_type']
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
@@ -36,6 +36,5 @@ class SignUpForm(UserCreationForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        # No strict validation - backend will handle defaults
         return cleaned_data
 

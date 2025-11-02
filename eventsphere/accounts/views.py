@@ -12,7 +12,7 @@ def signup(request):
         if form.is_valid():
             user = form.save()  # This returns a User instance
             user_type = form.cleaned_data['user_type']
-            organization_name = form.cleaned_data.get('organization_name', '').strip()
+            organization_name = form.cleaned_data.get('organization_name', '')
 
             user_profile = UserProfile.objects.create(
                 user=user,
@@ -31,20 +31,14 @@ def signup(request):
                 )
 
             elif user_type == 'ORGANIZER':
-                # Ensure organization_name is provided
-                if not organization_name:
-                    organization_name = user.username  # Fallback to username
                 EventOrganizer.objects.create(
                     profile=user_profile,
-                    organization_name=organization_name,
+                    organization_name=form.cleaned_data['organization_name'],
                     contact_email=user.email,
                     phone_number=''
                 )
 
             return redirect('login')
-        else:
-            # Form is invalid, render with errors so user can see what went wrong
-            return render(request, 'accounts/signup.html', {'form': form})
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
@@ -63,41 +57,8 @@ def login_view(request):
                 if profile.user_type == 'ORGANIZER':
                     return redirect('organizer_dashboard')
                 else:
-                    # Try to get attendee by profile first, then by email
-                    try:
-                        attendee = Attendee.objects.get(profile=profile)
-                    except Attendee.DoesNotExist:
-                        # Try to find by email and assign profile
-                        try:
-                            attendee = Attendee.objects.get(email=user.email)
-                            attendee.profile = profile
-                            attendee.save()
-                        except Attendee.DoesNotExist:
-                            # Create new attendee
-                            attendee = Attendee.objects.create(
-                                profile=profile,
-                                name=user.username,
-                                age=18,
-                                email=user.email,
-                                phone_number=''
-                            )
+                    attendee = Attendee.objects.get(profile=profile)
                     return redirect('profile_view', attendee_id=attendee.id)
-            except UserProfile.DoesNotExist:
-                # Auto-create profile for existing users without one
-                profile = UserProfile.objects.create(
-                    user=user,
-                    contact_email=user.email,
-                    user_type='ATTENDEE',
-                    organization_name=''
-                )
-                attendee = Attendee.objects.create(
-                    profile=profile,
-                    name=user.username,
-                    age=18,
-                    email=user.email,
-                    phone_number=''
-                )
-                return redirect('profile_view', attendee_id=attendee.id)
         else:
             error = "Invalid username or password."
 
