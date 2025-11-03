@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 700px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">Your Organizer Dashboard</h3>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-4">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+            <p class="text-center">
+                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">Logout</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
