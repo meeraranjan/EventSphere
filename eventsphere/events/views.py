@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from accounts.models import UserProfile
-from .models import EventOrganizer
-from .forms import EventOrganizerForm
+from .models import EventOrganizer, Event
+from .forms import EventOrganizerForm, EventForm
+from django.http import HttpResponse
 
 # Create your views here.
 @login_required
@@ -27,3 +29,54 @@ def organizer_dashboard(request):
         form = EventOrganizerForm(instance=organizer)
 
     return render(request, 'events/organizer_dashboard.html', {'form': form})
+
+@login_required
+def create_event(request):
+    if request.user.userprofile.user_type != 'ORGANIZER':
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES)
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.organizer = request.user
+            event.save()
+            return redirect('my_events')
+    else:
+        form = EventForm()
+    return render(request, 'events/create_event.html', {'form': form})
+
+@login_required
+def my_events(request):
+    # show only events created by the logged-in organizer
+    events = Event.objects.filter(organizer=request.user)
+    return render(request, 'events/my_events.html', {'events': events})
+
+@login_required
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id, organizer=request.user)
+
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, f'"{event.title}" has been deleted successfully.')
+        return redirect('my_events')
+
+    return render(request, 'events/confirm_delete.html', {'event': event})
+
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id, organizer=request.user)
+
+    if request.method == 'POST':
+        form = EventForm(request.POST, request.FILES, instance=event)
+        if form.is_valid():
+            updated_event = form.save()
+
+            # 🔔 (Future placeholder) — send notifications to attendees
+            # notify_attendees(updated_event)
+
+            return redirect('my_events')
+    else:
+        form = EventForm(instance=event)
+
+    return render(request, 'events/edit_event.html', {'form': form, 'event': event})
