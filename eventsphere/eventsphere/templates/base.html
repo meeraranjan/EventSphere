@@ -39,10 +39,19 @@
                                 href="{% url 'home.about' %}">About</a>
                         </li>
                         {% if user.is_authenticated %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if request.resolver_match.url_name == 'organizer_dashboard' %}active{% endif %}"
-                                href="{% url 'organizer_dashboard' %}">Dashboard</a>
-                            </li>
+                            {% if user.userprofile.user_type == 'ATTENDEE' %}
+                                {% with attendee=user.userprofile.attendee %}
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}"
+                                        href="{% url 'profile_view' attendee.id %}">Profile</a>
+                                    </li>
+                                {% endwith %}
+                            {% elif user.userprofile.user_type == 'ORGANIZER' %}
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'organizer_dashboard' %}active{% endif %}"
+                                    href="{% url 'organizer_dashboard' %}">Dashboard</a>
+                                </li>
+                            {% endif %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                             </li>

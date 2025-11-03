@@ -59,10 +59,13 @@ def login_view(request):
                 else:
                     attendee = Attendee.objects.get(profile=profile)
                     return redirect('profile_view', attendee_id=attendee.id)
+            except (UserProfile.DoesNotExist, Attendee.DoesNotExist):
+                error = "Profile not found. Please contact support."
         else:
             error = "Invalid username or password."
 
     return render(request, 'accounts/login.html', {'error': error})
+
 
 def logout_view(request):
     logout(request)
