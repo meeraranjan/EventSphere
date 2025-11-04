@@ -38,6 +38,10 @@
                             <a class="nav-link {% if request.resolver_match.url_name == 'home.about' %}active{% endif %}"
                                 href="{% url 'home.about' %}">About</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'events_map' %}active{% endif %}"
+                                href="{% url 'events_map' %}">Events</a>
+                        </li>
                         {% if user.is_authenticated %}
                             {% if user.userprofile.user_type == 'ATTENDEE' %}
                                 {% with attendee=user.userprofile.attendee %}

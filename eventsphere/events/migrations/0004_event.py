@@ -27,6 +27,10 @@ class Migration(migrations.Migration):
                 ('price', models.DecimalField(decimal_places=2, default=0, max_digits=8)),
                 ('image', models.ImageField(blank=True, null=True, upload_to='event_images/')),
                 ('organizer', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='organized_events', to=settings.AUTH_USER_MODEL)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
             ],
         ),
     ]
+
+                

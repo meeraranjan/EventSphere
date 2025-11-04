@@ -1,6 +1,7 @@
 from django.db import models
 from django.db import models
 from accounts.models import UserProfile  
+from django.contrib import admin
 
 class Attendee(models.Model):
     profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
@@ -11,3 +12,5 @@ class Attendee(models.Model):
 
     def __str__(self):
         return self.name
+
+admin.site.register(Attendee)
