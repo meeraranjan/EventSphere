@@ -129,3 +129,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATICFILES_DIRS = [ BASE_DIR / 'eventsphere/static/',]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+GOOGLE_MAPS_API_KEY = 'AIzaSyCAZGcPey98efdwODbN7bumoJp8ybon9ds'

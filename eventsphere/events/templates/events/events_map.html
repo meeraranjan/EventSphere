@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Events Near You</h2>
+    <div id="map" style="height: 600px;" class="mb-4"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Upcoming Events</h3>
+            <div class="list-group">
+                {% for event in events %}
+                <div class="list-group-item">
+                    <h5 class="mb-1">{{ event.title }}</h5>
+                    <p class="mb-1">{{ event.description|truncatewords:30 }}</p>
+                    <small>
+                        <strong>Date:</strong> {{ event.date|date:"F j, Y, g:i a" }}<br>
+                        <strong>Location:</strong> {{ event.location_name }}
+                    </small>
+                </div>
+                {% empty %}
+                <p>No upcoming events found.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initMap() {
+        const defaultCenter = { lat: 33.7490, lng: -84.3880 }; //atl
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 11,
+            center: defaultCenter,
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    map.setCenter(pos);
+                },
+                () => {
+                    map.setCenter(defaultCenter);
+                }
+            );
+        }
+        const events = {{ events_json|safe }};
+
+    events.forEach(event => {
+        const marker = new google.maps.Marker({
+            position: { lat: parseFloat(event.latitude), lng: parseFloat(event.longitude) },
+            map: map,
+            title: event.title
+        });
+
+        const infowindow = new google.maps.InfoWindow({
+            content: `
+                    <div style="max-width: 300px;">
+                        <h6>${event.title}</h6>
+                        ${event.image_url ? `<img src="${event.image_url}" style="max-width: 100%; height: auto; margin: 10px 0;">` : ''}
+                        <p style="margin: 5px 0;">${event.description}</p>
+                        <p style="margin: 5px 0;"><strong>Date:</strong> ${event.date}</p>
+                        <p style="margin: 5px 0;"><strong>Location:</strong> ${event.location_name}</p>
+                    </div>
+                `
+        });
+
+        marker.addListener("click", () => {
+            infowindow.open(map, marker);
+        });
+    });
+    }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
+</script>
+{% endblock %}

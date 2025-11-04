@@ -2,6 +2,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
+import json
+from django.utils import timezone
+from django.conf import settings
 from accounts.models import UserProfile
 from .models import EventOrganizer, Event
 from .forms import EventOrganizerForm, EventForm
@@ -80,3 +83,24 @@ def edit_event(request, event_id):
         form = EventForm(instance=event)
 
     return render(request, 'events/edit_event.html', {'form': form, 'event': event})
+def events_map(request):
+    upcoming_events = Event.objects.filter(date__gt=timezone.now()).order_by('date')
+    events_json = json.dumps([
+        {
+            "title": event.title,
+            "description": event.description,
+            "date": event.date.strftime("%Y-%m-%d %H:%M"),
+            "location_name": event.location_name,
+            "latitude": float(event.latitude),
+            "longitude": float(event.longitude),
+            "image_url": request.build_absolute_uri(event.image.url) if event.image else None,
+        }
+        for event in upcoming_events
+    ])
+
+    context = {
+        "events": upcoming_events,
+        "events_json": events_json,
+        "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY,
+    }
+    return render(request, "events/events_map.html", context)

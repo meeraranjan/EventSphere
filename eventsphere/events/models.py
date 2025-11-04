@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import UserProfile
 from django.conf import settings
+from django.utils import timezone
 
 # Create your models here.
 
@@ -33,3 +34,8 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    @property
+    def is_upcoming(self):
+        return self.date > timezone.now()
