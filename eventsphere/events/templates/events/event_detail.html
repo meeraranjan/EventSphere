@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">{{ event.title }}</h2>
+
+    {% if event.image %}
+    <img src="{{ event.image.url }}" alt="{{ event.title }}" class="img-fluid mb-4" style="max-width:600px;">
+    {% endif %}
+
+    <div class="mb-3">
+        <p><strong>Date:</strong> {{ event.date }}{% if event.time %} at {{ event.time|time:"g:i a" }}{% endif %}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        {% if event.capacity %}
+            <p><strong>Capacity:</strong> {{ event.capacity }}</p>
+        {% endif %}
+        {% if event.price %}
+            <p><strong>Price:</strong> ${{ event.price }}</p>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    {% if event.description %}
+    <p class="mt-3">{{ event.description }}</p>
+    {% endif %}
+
+    {% if event.ticket_url %}
+    <div class="mt-4">
+        <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-primary">Book Tickets</a>
+    </div>
+    {% else %}
+    <div class="mt-4">
+        <span class="badge bg-secondary">Tickets not available</span>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'events_map' %}" class="btn btn-secondary mt-4">Back</a>
+</div>
+{% endblock %}

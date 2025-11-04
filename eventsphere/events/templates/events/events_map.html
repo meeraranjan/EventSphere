@@ -17,6 +17,12 @@
                         <strong>Date:</strong> {{ event.date|date:"F j, Y" }}{% if event.time %} at {{ event.time|time:"g:i a" }}{% endif %}
                         <strong>Location:</strong> {{ event.location }}
                     </small>
+                        <div class="mt-2">
+                            {% if event.ticket_url %}
+                            <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-primary btn-sm">Book Tickets</a>
+                            {% endif %}
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                        </div>
                 </div>
                 {% empty %}
                 <p>No upcoming events found.</p>
@@ -50,6 +56,8 @@
         }
         const events = {{ events_json|safe }};
 
+        let activeInfoWindow = null;
+
     events.forEach(event => {
         const marker = new google.maps.Marker({
             position: { lat: parseFloat(event.latitude), lng: parseFloat(event.longitude) },
@@ -66,12 +74,22 @@
                         <p style="margin: 5px 0;"><strong>Date:</strong> ${event.date}${event.time ? ' at ' + event.time : ''}</p>
 
                         <p style="margin: 5px 0;"><strong>Location:</strong> ${event.location_name}</p>
+                        <a href="/events/${event.id}/" 
+                        style="display:inline-block; margin-top:6px; background:#2563eb; 
+                                color:#fff; padding:6px 10px; border-radius:6px; 
+                                text-decoration:none; font-size:0.85rem;">
+                        View Details →
+                        </a>
                     </div>
                 `
         });
-
         marker.addListener("click", () => {
+            if (activeInfoWindow) {
+                activeInfoWindow.close();
+            }
+
             infowindow.open(map, marker);
+            activeInfoWindow = infowindow;
         });
     });
     }
