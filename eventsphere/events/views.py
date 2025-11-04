@@ -111,6 +111,7 @@ def events_map(request):
             "latitude": float(event.latitude),
             "longitude": float(event.longitude),
             "image_url": request.build_absolute_uri(event.image.url) if event.image else None,
+            'id': event.id,
         }
         for event in valid_events
     ])
@@ -122,3 +123,7 @@ def events_map(request):
         "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY,
     }
     return render(request, "events/events_map.html", context)
+
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, 'events/event_detail.html', {'event': event})
