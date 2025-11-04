@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import UserProfile
 from django.conf import settings
 from django.utils import timezone
+from django.contrib import admin
 
 # Create your models here.
 
@@ -26,6 +27,8 @@ class Event(models.Model):
     ticket_url = models.URLField(blank=True, null=True)
     capacity = models.PositiveIntegerField(blank=True, null=True)
     image = models.ImageField(upload_to='event_images/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     organizer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -34,8 +37,9 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     @property
     def is_upcoming(self):
         return self.date > timezone.now()
+    
+admin.site.register(Event)
+admin.site.register(EventOrganizer)

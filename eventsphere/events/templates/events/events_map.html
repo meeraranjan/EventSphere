@@ -14,8 +14,8 @@
                     <h5 class="mb-1">{{ event.title }}</h5>
                     <p class="mb-1">{{ event.description|truncatewords:30 }}</p>
                     <small>
-                        <strong>Date:</strong> {{ event.date|date:"F j, Y, g:i a" }}<br>
-                        <strong>Location:</strong> {{ event.location_name }}
+                        <strong>Date:</strong> {{ event.date|date:"F j, Y" }}{% if event.time %} at {{ event.time|time:"g:i a" }}{% endif %}
+                        <strong>Location:</strong> {{ event.location }}
                     </small>
                 </div>
                 {% empty %}
@@ -63,7 +63,8 @@
                         <h6>${event.title}</h6>
                         ${event.image_url ? `<img src="${event.image_url}" style="max-width: 100%; height: auto; margin: 10px 0;">` : ''}
                         <p style="margin: 5px 0;">${event.description}</p>
-                        <p style="margin: 5px 0;"><strong>Date:</strong> ${event.date}</p>
+                        <p style="margin: 5px 0;"><strong>Date:</strong> ${event.date}${event.time ? ' at ' + event.time : ''}</p>
+
                         <p style="margin: 5px 0;"><strong>Location:</strong> ${event.location_name}</p>
                     </div>
                 `
