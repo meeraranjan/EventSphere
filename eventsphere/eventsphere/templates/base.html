@@ -48,6 +48,10 @@
                                 {% endwith %}
                             {% elif user.userprofile.user_type == 'ORGANIZER' %}
                                 <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'my_events' %}active{% endif %}"
+                                    href="{% url 'my_events' %}">My Events</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link {% if request.resolver_match.url_name == 'organizer_dashboard' %}active{% endif %}"
                                     href="{% url 'organizer_dashboard' %}">Dashboard</a>
                                 </li>
@@ -69,6 +73,18 @@
                 </div>
             </div>
         </nav>
+
+        {% if messages %}
+            <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            </div>
+            {% endif %}
+
     </header> <!-- Header -->
     <div class="flex-fill">
         {% block content %}

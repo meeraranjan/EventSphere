@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">My Events</h2>
+  <a href="{% url 'create_event' %}" class="btn btn-success mb-4">+ Post New Event</a>
+
+  {% if events %}
+    {% for event in events %}
+      <div class="card mb-3 shadow-sm">
+        {% if event.image %}
+          <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="max-height: 250px; object-fit: cover;">
+        {% endif %}
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h4 class="card-title mb-1">{{ event.title }}</h4>
+              <p class="card-text mb-1"><strong>Date:</strong> {{ event.date|date:"M. d, Y" }}</p>
+              <p class="card-text mb-1"><strong>Time:</strong> {{ event.time|time:"g:i a" }}</p>
+              <p class="card-text"><strong>Location:</strong> {{ event.location }}</p>
+            </div>
+            <div class="text-end">
+              <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm mb-2 w-100">Edit</a>
+              <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm mb-2 w-100">Delete</a>
+              <a href="#" 
+                 class="btn btn-primary btn-sm w-100"
+                 data-bs-toggle="modal"
+                 data-bs-target="#eventDetailsModal"
+                 data-title="{{ event.title }}"
+                 data-date="{{ event.date|date:'M. d, Y' }}"
+                 data-time="{{ event.time|time:'g:i a' }}"
+                 data-location="{{ event.location }}"
+                 data-ticket="{{ event.ticket_url }}">
+                 View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>You haven’t created any events yet.</p>
+  {% endif %}
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventDetailsModalLabel">Event Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h4 id="eventTitle"></h4>
+        <p><strong>Date:</strong> <span id="eventDate"></span></p>
+        <p><strong>Time:</strong> <span id="eventTime"></span></p>
+        <p><strong>Location:</strong> <span id="eventLocation"></span></p>
+        <p><strong>RSVPs:</strong> 0</p>
+        <p><strong>Views:</strong> 0</p>
+
+        <hr>
+        <div class="d-grid gap-2">
+          <button class="btn btn-warning" id="sendReminderBtn">Send Reminder to All Attendees</button>
+          <button class="btn btn-secondary" id="exportListBtn">Export Attendee List</button>
+          <a id="ticketLink" href="#" target="_blank" class="btn btn-info text-white">Ticket Link</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('eventDetailsModal');
+
+  modal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const title = button.getAttribute('data-title');
+    const date = button.getAttribute('data-date');
+    const time = button.getAttribute('data-time');
+    const location = button.getAttribute('data-location');
+    const ticket = button.getAttribute('data-ticket');
+
+    modal.querySelector('#eventTitle').textContent = title;
+    modal.querySelector('#eventDate').textContent = date;
+    modal.querySelector('#eventTime').textContent = time;
+    modal.querySelector('#eventLocation').textContent = location;
+
+    const ticketLink = modal.querySelector('#ticketLink');
+    if (ticket && ticket !== 'None') {
+      ticketLink.href = ticket;
+      ticketLink.classList.remove('disabled');
+    } else {
+      ticketLink.href = '#';
+      ticketLink.classList.add('disabled');
+    }
+  });
+
+  // Placeholder actions
+  document.getElementById('sendReminderBtn').addEventListener('click', () => {
+    alert('✅ Reminder sent to all attendees! (placeholder)');
+  });
+
+  document.getElementById('exportListBtn').addEventListener('click', () => {
+    alert('📄 Attendee list exported! (placeholder)');
+  });
+});
+</script>
+{% endblock %}
+

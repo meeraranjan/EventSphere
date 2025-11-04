@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 mb-5" style="max-width: 600px;">
+  <div class="card shadow-sm p-4 text-center">
+    <h3 class="mb-3 text-danger">Are you sure you want to delete this event?</h3>
+    <p class="mb-4">
+      <strong>{{ event.title }}</strong><br>
+      {{ event.date|date:"M. d, Y" }}{% if event.time %}, {{ event.time|time:"g:i a" }}{% endif %}
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+      <a href="{% url 'my_events' %}" class="btn btn-secondary ms-2 px-4">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
