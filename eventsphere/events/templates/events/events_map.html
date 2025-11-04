@@ -16,6 +16,13 @@
                     <small>
                         <strong>Date:</strong> {{ event.date|date:"F j, Y" }}{% if event.time %} at {{ event.time|time:"g:i a" }}{% endif %}
                         <strong>Location:</strong> {{ event.location }}
+                        {% if event.ticket_url %}
+                            <div class="mt-2">
+                                <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-info btn-sm">
+                                Buy Tickets
+                                </a>
+                            </div>
+                        {% endif %}
                     </small>
                 </div>
                 {% empty %}
