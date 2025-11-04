@@ -16,6 +16,24 @@ class EventOrganizer(models.Model):
         return f"{self.organization_name} ({self.profile.user.username})"
 
 class Event(models.Model):
+    MUSIC = "music"
+    SPORTS = "sports"
+    TECH = "tech"
+    ART = "art"
+    FOOD = "food"
+    OTHER = "other"
+    CHARITIES = "charities" 
+
+    CATEGORY_CHOICES = [
+        (MUSIC, "Music"),
+        (SPORTS, "Sports"),
+        (TECH, "Tech"),
+        (ART, "Art"),
+        (FOOD, "Food"),
+        (CHARITIES, "Charitable"), 
+        (OTHER, "Other"),
+    ]
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=OTHER)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=255)
@@ -39,7 +57,28 @@ class Event(models.Model):
         return self.title
     @property
     def is_upcoming(self):
-        return self.date > timezone.now()
-    
-admin.site.register(Event)
-admin.site.register(EventOrganizer)
+        return self.date > timezone.localdate()
+
+class RSVP(models.Model):
+    GOING = "going"
+    INTERESTED = "interested"
+    NOT_GOING = "not_going"
+    STATUS_CHOICES = [
+        (GOING, "Going"),
+        (INTERESTED, "Interested"),
+        (NOT_GOING, "Not going"),
+    ]
+
+    event = models.ForeignKey("Event", on_delete=models.CASCADE, related_name="rsvps")
+    attendee = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rsvps"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=GOING)
+    contact_email = models.EmailField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("event", "attendee")
+
+    def __str__(self):
+        return f"{self.attendee} → {self.event} ({self.status})"

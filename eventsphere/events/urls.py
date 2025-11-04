@@ -8,5 +8,8 @@ urlpatterns = [
     path('edit/<int:event_id>/', views.edit_event, name='edit_event'),
     path('delete/<int:event_id>/', views.delete_event, name='delete_event'),
     path('map/', events_map, name='events_map'),
+    path("<int:event_id>/attendees/", views.event_attendees, name="event_attendees"),
+    path("<int:event_id>/attendees/export/", views.event_attendees_export_csv, name="event_attendees_export_csv"),
+    path("<int:event_id>/rsvp/", views.rsvp_event, name="rsvp_event"),
     path('<int:event_id>/', views.event_detail, name='event_detail'),
 ]

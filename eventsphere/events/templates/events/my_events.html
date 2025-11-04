@@ -29,10 +29,19 @@
                  data-date="{{ event.date|date:'M. d, Y' }}"
                  data-time="{{ event.time|time:'g:i a' }}"
                  data-location="{{ event.location }}"
-                 data-ticket="{{ event.ticket_url }}">
+                 data-ticket="{{ event.ticket_url }}"
+                 data-rsvp-count="{{ event.rsvps.count }}"
+                 data-export-url="{% url 'event_attendees_export_csv' event.id %}"
+              >
                  View Details
               </a>
             </div>
+            <a href="{% url 'event_attendees' event.id %}" class="btn btn-outline-secondary btn-sm mb-2 w-100">
+              Manage Attendees
+            </a>
+            <a href="{% url 'event_attendees_export_csv' event.id %}" class="btn btn-outline-primary btn-sm w-100">
+              Export CSV
+            </a>
           </div>
         </div>
       </div>
@@ -55,7 +64,7 @@
         <p><strong>Date:</strong> <span id="eventDate"></span></p>
         <p><strong>Time:</strong> <span id="eventTime"></span></p>
         <p><strong>Location:</strong> <span id="eventLocation"></span></p>
-        <p><strong>RSVPs:</strong> 0</p>
+        <p><strong>RSVPs:</strong> <span id="eventRsvpCount">0</span></p>
         <p><strong>Views:</strong> 0</p>
 
         <hr>
@@ -80,7 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const time = button.getAttribute('data-time');
     const location = button.getAttribute('data-location');
     const ticket = button.getAttribute('data-ticket');
-
+    const rsvpCount = button.getAttribute('data-rsvp-count') || '0';
+    
+    modal.querySelector('#eventRsvpCount').textContent = rsvpCount;
     modal.querySelector('#eventTitle').textContent = title;
     modal.querySelector('#eventDate').textContent = date;
     modal.querySelector('#eventTime').textContent = time;
@@ -93,6 +104,11 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       ticketLink.href = '#';
       ticketLink.classList.add('disabled');
+    }
+    const exportUrl = button.getAttribute('data-export-url');
+    const exportBtn = document.getElementById('exportListBtn');  // your existing button
+    if (exportBtn && exportUrl) {
+      exportBtn.onclick = () => { window.location.href = exportUrl; };
     }
   });
 

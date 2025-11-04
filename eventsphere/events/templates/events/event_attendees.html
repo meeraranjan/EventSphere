@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Attendees — {{ event.title }}</h2>
+  <p>
+    <a class="btn btn-outline-primary" href="{% url 'event_attendees_export_csv' event.id %}">Export CSV</a>
+    <a class="btn btn-link" href="{% url 'my_events' %}">Back to My Events</a>
+  </p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Contact Email</th>
+        <th>Status</th>
+        <th>RSVP Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in attendees %}
+      <tr>
+        <td>{{ r.attendee.username }}</td>
+        <td>{{ r.attendee.first_name }} {{ r.attendee.last_name }}</td>
+        <td>{{ r.attendee.email }}</td>
+        <td>{{ r.contact_email }}</td>
+        <td>{{ r.get_status_display }}</td>
+        <td>{{ r.created_at }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No RSVPs yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
