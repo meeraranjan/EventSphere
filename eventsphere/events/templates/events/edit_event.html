@@ -8,13 +8,17 @@
     {{ form.non_field_errors }}
 
     {% for field in form %}
-      <div class="mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-          <div class="text-danger small">{{ field.errors|join:", " }}</div>
-        {% endif %}
-      </div>
+      {% if field.name != "latitude" and field.name != "longitude" %}
+        <div class="mb-3">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+      {% else %}
+        {{ field.as_hidden }}
+      {% endif %}
     {% endfor %}
 
     <div class="form-check mb-4">
