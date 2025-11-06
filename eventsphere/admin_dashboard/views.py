@@ -18,13 +18,13 @@ def admin_dashboard(request):
     engagement_rate = round((engaged_users / total_users) * 100, 2) if total_users else 0
 
     events_by_city = (
-        Event.objects.values('location')
+    Event.objects.values('city')
         .annotate(event_count=Count('id'))
         .order_by('-event_count')
     )
 
     rsvps_by_city = (
-        RSVP.objects.values('event__location')
+        RSVP.objects.values('event__city')
         .annotate(rsvp_count=Count('id'))
         .order_by('-rsvp_count')
     )

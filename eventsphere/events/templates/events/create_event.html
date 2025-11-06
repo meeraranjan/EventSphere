@@ -31,7 +31,7 @@
         <div class="text-danger">{{ error }}</div>
       {% endfor %}
     </div>
-<div class="mb-3">
+    <div class="mb-3">
       <label for="id_category" class="form-label">Category</label>
       {{ form.category }}
       {% for error in form.category.errors %}
@@ -47,6 +47,14 @@
       {% endfor %}
     </div>
 
+    <div class="mb-3">
+      <label for="id_city" class="form-label">City</label>
+      {{ form.city }}
+      {% for error in form.city.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+    
     <div class="row">
       <div class="col-md-6 mb-3">
         <label for="id_date" class="form-label">Date</label>

@@ -60,17 +60,22 @@ def create_event(request):
         if form.is_valid():
             event = form.save(commit=False)
             event.organizer = request.user
-            lat, lng = geocode_address(event.location)
+
+            # Combine location and city for better geocoding
+            full_address = f"{event.location}, {event.city}" if event.city else event.location
+            lat, lng = geocode_address(full_address)
             event.latitude = lat
             event.longitude = lng
 
             event.save()
+            messages.success(request, f"'{event.title}' created successfully!")
             return redirect('my_events')
         else:
-            # <-- ADD THIS LINE
             print(form.errors)
+            messages.error(request, "Please correct the errors below.")
     else:
         form = EventForm()
+
     return render(request, 'events/create_event.html', {'form': form})
 
 @login_required
@@ -90,6 +95,8 @@ def delete_event(request, event_id):
 
     return render(request, 'events/confirm_delete.html', {'event': event})
 
+
+
 @login_required
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id, organizer=request.user)
@@ -99,24 +106,24 @@ def edit_event(request, event_id):
         if form.is_valid():
             updated_event = form.save(commit=False)
 
-            # 🔔 (Future placeholder) — send notifications to attendees
-            # notify_attendees(updated_event)
-            if 'location' in form.changed_data:
-                lat, lng = geocode_address(updated_event.location)
+            # Only re-geocode if location or city changed
+            if 'location' in form.changed_data or 'city' in form.changed_data:
+                full_address = f"{updated_event.location}, {updated_event.city}" if updated_event.city else updated_event.location
+                lat, lng = geocode_address(full_address)
                 updated_event.latitude = lat
                 updated_event.longitude = lng
 
             updated_event.save()
-
-            messages.success(request, f'"{updated_event.title}" updated successfully!')
+            messages.success(request, f"'{updated_event.title}' updated successfully!")
             return redirect('my_events')
-
-
-            return redirect('my_events')
+        else:
+            print(form.errors)
+            messages.error(request, "Please correct the errors below.")
     else:
         form = EventForm(instance=event)
 
     return render(request, 'events/edit_event.html', {'form': form, 'event': event})
+
 
 def events_map(request):
     filter_form = EventFilterForm(request.GET or None)
