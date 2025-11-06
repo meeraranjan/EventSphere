@@ -15,7 +15,7 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'title', 'description', 'location',
+            'title', 'description', 'location','city',
             'latitude', 'longitude', 'date', 'time',
             'price', 'ticket_url', 'capacity', 'image',
             'category',
@@ -24,6 +24,7 @@ class EventForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter city'}),
             'latitude': forms.NumberInput(attrs={'class': 'form-control'}),
             'longitude': forms.NumberInput(attrs={'class': 'form-control'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -49,7 +50,13 @@ class EventFilterForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
-
+    radius = forms.FloatField(
+            required=False,
+            label="Radius (km)",
+            widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter radius in km'})
+        )
+    user_lat = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    user_lng = forms.FloatField(widget=forms.HiddenInput(), required=False)
     def clean(self):
         data = super().clean()
         sd, ed = data.get('start_date'), data.get('end_date')

@@ -6,29 +6,69 @@
   <form method="post" enctype="multipart/form-data" class="card shadow-sm p-4">
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <ul>
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
     <div class="mb-3">
       <label for="id_title" class="form-label">Event Name</label>
       {{ form.title }}
+      {% for error in form.title.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
     <div class="mb-3">
       <label for="id_description" class="form-label">Description</label>
       {{ form.description }}
+      {% for error in form.description.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <div class="mb-3">
+      <label for="id_category" class="form-label">Category</label>
+      {{ form.category }}
+      {% for error in form.category.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
     <div class="mb-3">
       <label for="id_location" class="form-label">Location</label>
       {{ form.location }}
+      {% for error in form.location.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
+    <div class="mb-3">
+      <label for="id_city" class="form-label">City</label>
+      {{ form.city }}
+      {% for error in form.city.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+    
     <div class="row">
       <div class="col-md-6 mb-3">
         <label for="id_date" class="form-label">Date</label>
         {{ form.date }}
+        {% for error in form.date.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
       </div>
       <div class="col-md-6 mb-3">
         <label for="id_time" class="form-label">Time</label>
         {{ form.time }}
+        {% for error in form.time.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
       </div>
     </div>
 
@@ -36,21 +76,33 @@
       <div class="col-md-6 mb-3">
         <label for="id_price" class="form-label">Price</label>
         {{ form.price }}
+        {% for error in form.price.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
       </div>
       <div class="col-md-6 mb-3">
         <label for="id_capacity" class="form-label">Capacity</label>
         {{ form.capacity }}
+        {% for error in form.capacity.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
       </div>
     </div>
 
     <div class="mb-3">
       <label for="id_ticket_url" class="form-label">Ticket URL</label>
       {{ form.ticket_url }}
+      {% for error in form.ticket_url.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
     <div class="mb-3">
       <label for="id_image" class="form-label">Image</label>
       {{ form.image }}
+      {% for error in form.image.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
     </div>
 
     <div class="text-center mt-4">
