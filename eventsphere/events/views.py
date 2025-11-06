@@ -12,6 +12,8 @@ from .forms import EventOrganizerForm, EventForm, EventFilterForm
 from django.http import HttpResponse
 from .utils import geocode_address
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 @login_required
@@ -102,7 +104,7 @@ def edit_event(request, event_id):
     return render(request, 'events/edit_event.html', {'form': form, 'event': event})
 def events_map(request):
     filter_form = EventFilterForm(request.GET or None)
-    qs = Event.objects.order_by('date').filter(date__gte=timezone.localdate())
+    qs = Event.objects.filter(approval_status=Event.STATUS_APPROVED, date__gte=timezone.localdate()).order_by('date')
     if filter_form.is_valid():
         category = filter_form.cleaned_data.get('category')
         start_date = filter_form.cleaned_data.get('start_date')
@@ -207,9 +209,45 @@ def rsvp_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     status = request.POST.get("status", RSVP.GOING)
     contact_email = request.POST.get("contact_email", request.user.email or "")
-    RSVP.objects.update_or_create(
+
+    # Create or update RSVP
+    rsvp, created = RSVP.objects.update_or_create(
         event=event,
         attendee=request.user,
         defaults={"status": status, "contact_email": contact_email},
     )
+
+    organizer_email = event.organizer.email
+    attendee_email = request.user.email
+    attendee_name = request.user.get_full_name() or request.user.username
+
+    # === Email to Organizer ===
+    subject_org = f"RSVP Update for '{event.title}'"
+    message_org = (
+        f"Hello {event.organizer.username},\n\n"
+        f"{attendee_name} has {'created' if created else 'updated'} their RSVP for your event '{event.title}'.\n\n"
+        f"RSVP status: {rsvp.get_status_display()}\n"
+        f"Event date: {event.date}\n"
+        f"Location: {event.location}\n\n"
+        f"— EventSphere Team"
+    )
+
+    # === Email to Attendee ===
+    subject_user = f"RSVP Confirmation for '{event.title}'"
+    message_user = (
+        f"Hello {attendee_name},\n\n"
+        f"Your RSVP for '{event.title}' has been {'created' if created else 'updated'} successfully.\n\n"
+        f"RSVP status: {rsvp.get_status_display()}\n"
+        f"Event date: {event.date}\n"
+        f"Location: {event.location}\n\n"
+        f"You can view this event under 'My Events' in EventSphere.\n\n"
+        f"— EventSphere Team"
+    )
+
+    try:
+        send_mail(subject_org, message_org, settings.DEFAULT_FROM_EMAIL, [organizer_email])
+        send_mail(subject_user, message_user, settings.DEFAULT_FROM_EMAIL, [attendee_email])
+    except Exception as e:
+        print(f"[Email Error] Could not send RSVP notification: {e}")
+
     return redirect("events_map")
