@@ -16,7 +16,8 @@
               <h4 class="card-title mb-1">{{ event.title }}</h4>
               <p class="card-text mb-1"><strong>Date:</strong> {{ event.date|date:"M. d, Y" }}</p>
               <p class="card-text mb-1"><strong>Time:</strong> {{ event.time|time:"g:i a" }}</p>
-              <p class="card-text"><strong>Location:</strong> {{ event.location }}</p>
+              <p class="card-text mb-1"><strong>Location:</strong> {{ event.location }}</p>
+              <p class="card-text"><strong>Tickets:</strong> <a href="{{ event.ticket_url }}" target="_blank">{{ event.ticket_url }}</a></p>
             </div>
             <div class="text-end">
               <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm mb-2 w-100">Edit</a>
