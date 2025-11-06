@@ -16,6 +16,15 @@ class EventOrganizer(models.Model):
         return f"{self.organization_name} ({self.profile.user.username})"
 
 class Event(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
     MUSIC = "music"
     SPORTS = "sports"
     TECH = "tech"
@@ -52,7 +61,11 @@ class Event(models.Model):
         on_delete=models.CASCADE,
         related_name='organized_events'
     )
-
+    approval_status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
     def __str__(self):
         return self.title
     @property
