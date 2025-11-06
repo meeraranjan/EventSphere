@@ -14,6 +14,8 @@ from .utils import geocode_address
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
+from accounts.models import UserProfile
+from .models import EventOrganizer
 
 # Create your views here.
 @login_required
@@ -54,6 +56,9 @@ def create_event(request):
 
             event.save()
             return redirect('my_events')
+        else:
+            # <-- ADD THIS LINE
+            print(form.errors)
     else:
         form = EventForm()
     return render(request, 'events/create_event.html', {'form': form})
