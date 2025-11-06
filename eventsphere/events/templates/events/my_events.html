@@ -14,6 +14,13 @@
           <div class="row g-3 align-items-start">
             <div class="col-md-8">
               <h4 class="card-title mb-2">{{ event.title }}</h4>
+              {% if event.approval_status == "approved" %}
+                <span class="badge bg-success">Approved</span>
+              {% elif event.approval_status == "pending" %}
+                <span class="badge bg-warning text-dark">Pending Approval</span>
+              {% elif event.approval_status == "rejected" %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
               <p class="card-text text-muted mb-2">{{ event.description|default:""|truncatewords:30 }}</p>
 
               <div class="small">
