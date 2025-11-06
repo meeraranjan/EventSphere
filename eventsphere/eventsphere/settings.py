@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'events',
-    'attendees'
+    'attendees',
+    'admin_dashboard',
+
 ]
 
 MIDDLEWARE = [
