@@ -17,7 +17,8 @@ class EventForm(forms.ModelForm):
         fields = [
             'title', 'description', 'location',
             'latitude', 'longitude', 'date', 'time',
-            'price', 'ticket_url', 'capacity', 'image'
+            'price', 'ticket_url', 'capacity', 'image',
+            'category',
         ]
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
@@ -31,4 +32,27 @@ class EventForm(forms.ModelForm):
             'ticket_url': forms.URLInput(attrs={'class': 'form-control'}),
             'capacity': forms.NumberInput(attrs={'class': 'form-control'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
         }
+
+class EventFilterForm(forms.Form):
+    category = forms.ChoiceField(
+        choices=[('', 'All categories')] + list(Event.CATEGORY_CHOICES),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    start_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    end_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
+    def clean(self):
+        data = super().clean()
+        sd, ed = data.get('start_date'), data.get('end_date')
+        if sd and ed and sd > ed:
+            self.add_error('end_date', 'End date must be on or after start date.')
+        return data

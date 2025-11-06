@@ -11,34 +11,59 @@
           <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="max-height: 250px; object-fit: cover;">
         {% endif %}
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <h4 class="card-title mb-1">{{ event.title }}</h4>
-              <p class="card-text mb-1"><strong>Date:</strong> {{ event.date|date:"M. d, Y" }}</p>
-              <p class="card-text mb-1"><strong>Time:</strong> {{ event.time|time:"g:i a" }}</p>
-              <p class="card-text"><strong>Location:</strong> {{ event.location }}</p>
+          <div class="row g-3 align-items-start">
+            <div class="col-md-8">
+              <h4 class="card-title mb-2">{{ event.title }}</h4>
+              <p class="card-text text-muted mb-2">{{ event.description|default:""|truncatewords:30 }}</p>
+
+              <div class="small">
+                <div class="mb-1">
+                  <strong>Date:</strong>
+                  {{ event.date|date:"M. d, Y" }}
+                  {% if event.time %}<span class="ms-1"><strong>Time:</strong> {{ event.time|time:"g:i a" }}</span>{% endif %}
+                </div>
+                <div class="mb-0">
+                  <strong>Location:</strong> {{ event.location }}
+                </div>
+             </div>
             </div>
-            <div class="text-end">
-              <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm mb-2 w-100">Edit</a>
-              <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm mb-2 w-100">Delete</a>
-              <a href="#" 
-                 class="btn btn-primary btn-sm w-100"
-                 data-bs-toggle="modal"
-                 data-bs-target="#eventDetailsModal"
-                 data-title="{{ event.title }}"
-                 data-date="{{ event.date|date:'M. d, Y' }}"
-                 data-time="{{ event.time|time:'g:i a' }}"
-                 data-location="{{ event.location }}"
-                 data-ticket="{{ event.ticket_url }}">
-                 View Details
+
+            <div class="col-md-4">
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex gap-2">
+                  <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm w-50">Edit</a>
+                  <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm w-50">Delete</a>
+                </div>
+
+              <a href="#"
+                  class="btn btn-primary btn-sm w-100"
+                  data-bs-toggle="modal"
+                  data-bs-target="#eventDetailsModal"
+                  data-title="{{ event.title }}"
+                  data-date="{{ event.date|date:'M. d, Y' }}"
+                  data-time="{{ event.time|time:'g:i a' }}"
+                  data-location="{{ event.location }}"
+                  data-ticket="{{ event.ticket_url }}"
+                  data-rsvp-count="{{ event.rsvps.count }}"
+                  data-export-url="{% url 'event_attendees_export_csv' event.id %}">
+                View Details
               </a>
+
+              <div class="d-flex gap-2">
+                <a href="{% url 'event_attendees' event.id %}" class="btn btn-outline-secondary btn-sm w-50">
+                  Manage Attendees
+                </a>
+                <a href="{% url 'event_attendees_export_csv' event.id %}" class="btn btn-outline-primary btn-sm w-50">
+                  Export CSV
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
     {% endfor %}
   {% else %}
-    <p>You haven’t created any events yet.</p>
+    <p>You haven’t created any events yet.</p>  
   {% endif %}
 </div>
 
@@ -55,7 +80,7 @@
         <p><strong>Date:</strong> <span id="eventDate"></span></p>
         <p><strong>Time:</strong> <span id="eventTime"></span></p>
         <p><strong>Location:</strong> <span id="eventLocation"></span></p>
-        <p><strong>RSVPs:</strong> 0</p>
+        <p><strong>RSVPs:</strong> <span id="eventRsvpCount">0</span></p>
         <p><strong>Views:</strong> 0</p>
 
         <hr>
@@ -80,7 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const time = button.getAttribute('data-time');
     const location = button.getAttribute('data-location');
     const ticket = button.getAttribute('data-ticket');
-
+    const rsvpCount = button.getAttribute('data-rsvp-count') || '0';
+    
+    modal.querySelector('#eventRsvpCount').textContent = rsvpCount;
     modal.querySelector('#eventTitle').textContent = title;
     modal.querySelector('#eventDate').textContent = date;
     modal.querySelector('#eventTime').textContent = time;
@@ -93,6 +120,11 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       ticketLink.href = '#';
       ticketLink.classList.add('disabled');
+    }
+    const exportUrl = button.getAttribute('data-export-url');
+    const exportBtn = document.getElementById('exportListBtn');  // your existing button
+    if (exportBtn && exportUrl) {
+      exportBtn.onclick = () => { window.location.href = exportUrl; };
     }
   });
 

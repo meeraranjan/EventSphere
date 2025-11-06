@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">My Events</h2>
+
+  {% if events_upcoming %}
+    <h5 class="mb-2">Upcoming</h5>
+    <div class="list-group mb-4">
+      {% for e in events_upcoming %}
+        <div class="list-group-item d-flex justify-content-between align-items-start">
+          <div class="me-3">
+            <h6 class="mb-1">{{ e.title }}</h6>
+            <div class="small text-muted mb-1">
+              <strong>Date:</strong> {{ e.date|date:"F j, Y" }}
+              {% if e.time %}&nbsp;<strong>Time:</strong> {{ e.time|time:"g:i a" }}{% endif %}
+              &nbsp;<strong>Location:</strong> {{ e.location }}
+              {% if e.category %}&nbsp;<strong>Category:</strong> {{ e.get_category_display }}{% endif %}
+            </div>
+            {% if e.description %}
+              <p class="mb-0">{{ e.description|truncatewords:30 }}</p>
+            {% endif %}
+          </div>
+          <div class="text-end" style="min-width: 180px;">
+            {% if e.ticket_url %}
+              <a href="{{ e.ticket_url }}" target="_blank" class="btn btn-outline-primary btn-sm mb-2 w-100">Tickets</a>
+            {% endif %}
+            <a href="{% url 'attendee_cancel_rsvp' e.id %}" class="btn btn-outline-danger btn-sm w-100">Cancel RSVP</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">You have no upcoming RSVPs.</p>
+  {% endif %}
+
+  {% if events_past %}
+    <h5 class="mb-2 mt-4">Past</h5>
+    <div class="list-group">
+      {% for e in events_past %}
+        <div class="list-group-item">
+          <h6 class="mb-1">{{ e.title }}</h6>
+          <div class="small text-muted">
+            <strong>Date:</strong> {{ e.date|date:"F j, Y" }}
+            {% if e.time %}&nbsp;<strong>Time:</strong> {{ e.time|time:"g:i a" }}{% endif %}
+            &nbsp;<strong>Location:</strong> {{ e.location }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{% url 'events_map' %}" class="btn btn-link">Back to Event Map</a>
+  </div>
+</div>
+{% endblock %}
