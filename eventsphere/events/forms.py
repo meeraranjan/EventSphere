@@ -49,7 +49,13 @@ class EventFilterForm(forms.Form):
         required=False,
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
-
+    radius = forms.FloatField(
+            required=False,
+            label="Radius (km)",
+            widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter radius in km'})
+        )
+    user_lat = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    user_lng = forms.FloatField(widget=forms.HiddenInput(), required=False)
     def clean(self):
         data = super().clean()
         sd, ed = data.get('start_date'), data.get('end_date')

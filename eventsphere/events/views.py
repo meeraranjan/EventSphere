@@ -13,9 +13,19 @@ from django.http import HttpResponse
 from .utils import geocode_address
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
-from django.conf import settings
 from accounts.models import UserProfile
-from .models import EventOrganizer
+import math
+
+def haversine(lat1, lon1, lat2, lon2):
+    """Return distance in km between two lat/lng points."""
+    R = 6371  # Earth radius in km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    a = math.sin(delta_phi / 2) ** 2 + \
+        math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 # Create your views here.
 @login_required
@@ -107,9 +117,14 @@ def edit_event(request, event_id):
         form = EventForm(instance=event)
 
     return render(request, 'events/edit_event.html', {'form': form, 'event': event})
+
 def events_map(request):
     filter_form = EventFilterForm(request.GET or None)
-    qs = Event.objects.filter(approval_status=Event.STATUS_APPROVED, date__gte=timezone.localdate()).order_by('date')
+    qs = Event.objects.filter(
+        approval_status=Event.STATUS_APPROVED,
+        date__gte=timezone.localdate()
+    ).order_by('date')
+
     if filter_form.is_valid():
         category = filter_form.cleaned_data.get('category')
         start_date = filter_form.cleaned_data.get('start_date')
@@ -123,6 +138,19 @@ def events_map(request):
             qs = qs.filter(date__lte=end_date)
 
     valid_events = [event for event in qs if event.latitude and event.longitude]
+
+    # Optional: filter by user location if lat/lng GET params exist
+    user_lat = request.GET.get('lat')
+    user_lng = request.GET.get('lng')
+    max_distance_km = float(request.GET.get('radius', 50))  # default 50 km
+
+    if user_lat and user_lng:
+        user_lat, user_lng = float(user_lat), float(user_lng)
+        valid_events = [
+            event for event in valid_events
+            if haversine(user_lat, user_lng, float(event.latitude), float(event.longitude)) <= max_distance_km
+        ]
+
     user_rsvp_by_event = {}
     if request.user.is_authenticated:
         event_ids = [e.id for e in valid_events]

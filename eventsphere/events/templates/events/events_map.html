@@ -20,6 +20,10 @@
             <label for="id_end_date" class="form-label">End date</label>
             {{ filter_form.end_date }}
         </div>
+        <div class="col-sm-4 col-md-3">
+            <label for="id_radius" class="form-label">Search Radius (km)</label>
+            {{ filter_form.radius }}
+        </div>
         <div class="col-12 col-md-3 d-flex align-items-end gap-2">
             <button type="submit" class="btn btn-primary">Apply</button>
             <a href="{% url 'events_map' %}" class="btn btn-secondary">Reset</a>
@@ -187,6 +191,30 @@ function initMap() {
     }
 }
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('event-filters');
 
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const latInput = document.createElement('input');
+            latInput.type = 'hidden';
+            latInput.name = 'lat';
+            latInput.value = position.coords.latitude;
+
+            const lngInput = document.createElement('input');
+            lngInput.type = 'hidden';
+            lngInput.name = 'lng';
+            lngInput.value = position.coords.longitude;
+
+            form.appendChild(latInput);
+            form.appendChild(lngInput);
+
+            // Optional: submit automatically on page load
+            // form.submit();
+        });
+    }
+});
+</script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap"></script>
 {% endblock %}
