@@ -149,7 +149,8 @@ def events_map(request):
     # Optional: filter by user location if lat/lng GET params exist
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
-    max_distance_km = float(request.GET.get('radius', 50))  # default 50 km
+    max_distance_km = float(request.GET.get('radius') or 50) # default 50 km
+
 
     if user_lat and user_lng:
         user_lat, user_lng = float(user_lat), float(user_lng)
