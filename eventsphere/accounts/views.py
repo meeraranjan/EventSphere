@@ -43,28 +43,75 @@ def signup(request):
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
 
-
 def login_view(request):
     error = None
+
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
+
         if user:
             login(request, user)
-            try:
-                profile = UserProfile.objects.get(user=user)
-                if profile.user_type == 'ORGANIZER':
-                    return redirect('organizer_dashboard')
-                else:
-                    attendee = Attendee.objects.get(profile=profile)
-                    return redirect('profile_view', attendee_id=attendee.id)
-            except (UserProfile.DoesNotExist, Attendee.DoesNotExist):
-                error = "Profile not found. Please contact support."
+
+            # --- FIX: auto-create profile if missing ---
+            profile, _ = UserProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'contact_email': user.email,
+                    'user_type': 'ATTENDEE',
+                    'organization_name': ''
+                }
+            )
+
+            if profile.user_type == 'ORGANIZER':
+                EventOrganizer.objects.get_or_create(
+                    profile=profile,
+                    defaults={
+                        'organization_name': profile.organization_name,
+                        'contact_email': user.email,
+                        'phone_number': ''
+                    }
+                )
+                return redirect('organizer_dashboard')
+
+            attendee, _ = Attendee.objects.get_or_create(
+                profile=profile,
+                defaults={
+                    'name': user.username,
+                    'age': 0,
+                    'email': user.email,
+                    'phone_number': ''
+                }
+            )
+            return redirect('profile_view', attendee_id=attendee.id)
+
         else:
             error = "Invalid username or password."
 
     return render(request, 'accounts/login.html', {'error': error})
+
+# def login_view(request):
+#     error = None
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         user = authenticate(request, username=username, password=password)
+#         if user:
+#             login(request, user)
+#             try:
+#                 profile = UserProfile.objects.get(user=user)
+#                 if profile.user_type == 'ORGANIZER':
+#                     return redirect('organizer_dashboard')
+#                 else:
+#                     attendee = Attendee.objects.get(profile=profile)
+#                     return redirect('profile_view', attendee_id=attendee.id)
+#             except (UserProfile.DoesNotExist, Attendee.DoesNotExist):
+#                 error = "Profile not found. Please contact support."
+#         else:
+#             error = "Invalid username or password."
+
+#     return render(request, 'accounts/login.html', {'error': error})
 
 
 def logout_view(request):
