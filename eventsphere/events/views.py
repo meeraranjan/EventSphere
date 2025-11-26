@@ -176,6 +176,7 @@ def events_map(request):
             "location_name": event.location,
             "latitude": float(event.latitude),
             "longitude": float(event.longitude),
+            "calendar_url": event.google_calendar_url(),
             "image_url": request.build_absolute_uri(event.image.url) if event.image else None,
             'id': event.id,
             "category": getattr(event, "category", None),

@@ -145,3 +145,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "eventspherecompany.info@gmail.com"
 EMAIL_HOST_PASSWORD = "iopm xghv kabx qtci"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+TIME_ZONE = 'America/New_York'

@@ -76,22 +76,25 @@ class Event(models.Model):
     def is_upcoming(self):
         return self.date > timezone.localdate()
     def google_calendar_url(self):
-        if self.time:
-            start = datetime.combine(self.date, self.time)
-        else:
-            start = datetime.combine(self.date, datetime.min.time())
+
+        tz_name = getattr(settings, 'TIME_ZONE', 'UTC')
+        tz = pytz.timezone(tz_name)
 
         if self.time:
-            end = start + timedelta(hours=1)
+            local_start = datetime.combine(self.date, self.time)
+            if local_start.tzinfo is None:
+                local_start = tz.localize(local_start)
+
+            local_end = local_start + timedelta(hours=1)
+
+            start_utc = local_start.astimezone(pytz.utc) 
+            end_utc = local_end.astimezone(pytz.utc)
+
+            start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
+            end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
         else:
-            end = start + timedelta(days=1)
-
-        tz = pytz.timezone("UTC")
-        start_utc = tz.localize(start)
-        end_utc = tz.localize(end)
-
-        start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
-        end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
+            start_str = self.date.strftime('%Y%m%d')
+            end_str = (self.date + timedelta(days=1)).strftime('%Y%m%d')
 
         params = {
             "action": "TEMPLATE",
@@ -100,6 +103,9 @@ class Event(models.Model):
             "location": self.location,
             "dates": f"{start_str}/{end_str}",
         }
+
+        if tz_name:
+            params['ctz'] = tz_name
 
         base = "https://calendar.google.com/calendar/render"
         return f"{base}?{urlencode(params)}"
