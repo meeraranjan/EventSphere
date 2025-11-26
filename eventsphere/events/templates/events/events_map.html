@@ -66,6 +66,11 @@
                         <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary btn-sm">
                             View Details
                         </a>
+                        {% if user.is_authenticated %}
+                            <a href="{{ event.google_calendar_url }}" target="_blank" class="btn btn-success btn-sm">
+                                Add to Google Calendar
+                            </a>
+                        {% endif %}
                     </div>
 
                     <!-- RSVP Section -->
