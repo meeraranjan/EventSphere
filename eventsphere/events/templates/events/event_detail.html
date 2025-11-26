@@ -17,11 +17,13 @@
         <p><strong>Price:</strong> ${{ event.price }}</p>
         {% endif %}
         {% if user.is_authenticated %}
-        <a href="{{ event.google_calendar_url }}" target="_blank" class="btn btn-success btn-sm">
+        <a href="{{ event.google_calendar_url }}" target="_blank" class="btn btn-success btn-sm"
+            style="background-color: burlywood;">
             Add to Google Calendar
         </a>
         {% else %}
-        <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary btn-sm">
+        <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary btn-sm"
+            style="background-color: gray; color: whitesmoke;">
             Log in to add to Google Calendar
         </a>
         {% endif %}
