@@ -3,6 +3,9 @@ from accounts.models import UserProfile
 from django.conf import settings
 from django.utils import timezone
 from django.contrib import admin
+from urllib.parse import urlencode
+from datetime import datetime, timedelta
+import pytz
 
 # Create your models here.
 
@@ -72,6 +75,34 @@ class Event(models.Model):
     @property
     def is_upcoming(self):
         return self.date > timezone.localdate()
+    def google_calendar_url(self):
+        if self.time:
+            start = datetime.combine(self.date, self.time)
+        else:
+            start = datetime.combine(self.date, datetime.min.time())
+
+        if self.time:
+            end = start + timedelta(hours=1)
+        else:
+            end = start + timedelta(days=1)
+
+        tz = pytz.timezone("UTC")
+        start_utc = tz.localize(start)
+        end_utc = tz.localize(end)
+
+        start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
+        end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
+
+        params = {
+            "action": "TEMPLATE",
+            "text": self.title,
+            "details": self.description or "",
+            "location": self.location,
+            "dates": f"{start_str}/{end_str}",
+        }
+
+        base = "https://calendar.google.com/calendar/render"
+        return f"{base}?{urlencode(params)}"
 
 class RSVP(models.Model):
     GOING = "going"
