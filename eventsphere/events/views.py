@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 import csv
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 import json
 from django.utils import timezone
@@ -9,12 +9,13 @@ from django.conf import settings
 from accounts.models import UserProfile
 from .models import EventOrganizer, Event, RSVP
 from .forms import EventOrganizerForm, EventForm, EventFilterForm
-from django.http import HttpResponse
 from .utils import geocode_address
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from accounts.models import UserProfile
 import math
+import requests
+import re
 
 def haversine(lat1, lon1, lat2, lon2):
     """Return distance in km between two lat/lng points."""
@@ -149,11 +150,16 @@ def events_map(request):
     # Optional: filter by user location if lat/lng GET params exist
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
-    max_distance_km = float(request.GET.get('radius') or 50) # default 50 km
+    max_distance_km = float(request.GET.get('radius') or 50)  # default 50 km
 
+    try:
+        user_lat = float(user_lat) if user_lat else None
+        user_lng = float(user_lng) if user_lng else None
+    except ValueError:
+        user_lat = None
+        user_lng = None
 
-    if user_lat and user_lng:
-        user_lat, user_lng = float(user_lat), float(user_lng)
+    if user_lat is not None and user_lng is not None:
         valid_events = [
             event for event in valid_events
             if haversine(user_lat, user_lng, float(event.latitude), float(event.longitude)) <= max_distance_km
@@ -190,6 +196,8 @@ def events_map(request):
         "google_maps_api_key": settings.GOOGLE_MAPS_API_KEY,
         "filter_form": filter_form,
         "user_rsvp_by_event": user_rsvp_by_event,
+        "user_lat": user_lat,
+        "user_lng": user_lng,
     }
     return render(request, "events/events_map.html", context)
 
@@ -293,3 +301,385 @@ def rsvp_event(request, event_id):
         print(f"[Email Error] Could not send RSVP notification: {e}")
 
     return redirect("events_map")
+
+
+def parse_duration(duration_str):
+    """Parse duration string like '514s' into human-readable format."""
+    if not duration_str:
+        return "Unknown"
+    
+    match = re.match(r'(\d+)s?$', str(duration_str))
+    if match:
+        total_seconds = int(match.group(1))
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        if hours > 0:
+            return f"{hours}h {minutes}min"
+        elif minutes > 0:
+            return f"{minutes} min"
+        else:
+            return f"{total_seconds} sec"
+    
+    return str(duration_str)
+
+
+def estimate_gas_cost(distance_meters):
+    """Estimate gas cost for driving."""
+    if distance_meters == 0:
+        return {"formatted": "Free", "amount": 0}
+    
+    distance_miles = distance_meters / 1609.34
+    mpg = 25  # Average fuel efficiency
+    gas_price = 3.50  # Average gas price per gallon
+    cost = distance_miles / mpg * gas_price
+    
+    return {
+        "formatted": f"${cost:.2f}",
+        "amount": round(cost, 2)
+    }
+
+
+def estimate_uber_cost(distance_meters):
+    """Estimate Uber cost based on distance."""
+    if distance_meters == 0:
+        return {"formatted": "N/A", "amount": 0}
+    
+    distance_miles = distance_meters / 1609.34
+    
+    # Uber pricing: base + per mile + booking fee + surge estimate
+    base_fare = 2.50
+    per_mile = 1.75
+    booking_fee = 2.75
+    
+    total = base_fare + (distance_miles * per_mile) + booking_fee
+    
+    return {
+        "formatted": f"${total:.2f}",
+        "amount": round(total, 2),
+        "range": f"${total*.9:.2f} - ${total*1.3:.2f}"  # Show range for surge
+    }
+
+
+def estimate_lyft_cost(distance_meters):
+    """Estimate Lyft cost (similar to Uber)."""
+    if distance_meters == 0:
+        return {"formatted": "N/A", "amount": 0}
+    
+    distance_miles = distance_meters / 1609.34
+    
+    # Lyft pricing (slightly different from Uber)
+    base_fare = 2.00
+    per_mile = 1.65
+    service_fee = 3.00
+    
+    total = base_fare + (distance_miles * per_mile) + service_fee
+    
+    return {
+        "formatted": f"${total:.2f}",
+        "amount": round(total, 2),
+        "range": f"${total*.9:.2f} - ${total*1.3:.2f}"
+    }
+
+
+def estimate_transit_cost():
+    """Standard transit fare."""
+    return {
+        "formatted": "$2.75",
+        "amount": 2.75,
+        "note": "Single ride fare"
+    }
+
+
+def get_parking_info(event_lat, event_lng):
+    """Get basic parking information near event location."""
+    # This is a placeholder - you could integrate with parking APIs
+    # For now, return generic info
+    return {
+        "available": True,
+        "estimated_cost": "$10-25",
+        "note": "Street and lot parking available nearby"
+    }
+
+
+@login_required
+def travel_options(request, event_id):
+    """
+    Calculate comprehensive travel options to an event.
+    Returns: Drive, Walk, Transit, Bike, Uber, Lyft
+    """
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Validate event coordinates
+    if event.latitude is None or event.longitude is None:
+        return JsonResponse({
+            "success": False,
+            "error": "Event location coordinates are not available"
+        }, status=400)
+    
+    # Get origin coordinates
+    origin_lat = request.GET.get("origin_lat")
+    origin_lng = request.GET.get("origin_lng")
+    
+    if not origin_lat or not origin_lng:
+        addr = request.GET.get("origin", "").strip()
+        if not addr:
+            return JsonResponse({
+                "success": False,
+                "error": "No origin provided"
+            }, status=400)
+        
+        lat, lng = geocode_address(addr)
+        if lat is None or lng is None:
+            return JsonResponse({
+                "success": False,
+                "error": f"Could not find location: {addr}"
+            }, status=400)
+        origin_lat, origin_lng = lat, lng
+    
+    try:
+        origin_lat = float(origin_lat)
+        origin_lng = float(origin_lng)
+    except (ValueError, TypeError):
+        return JsonResponse({
+            "success": False,
+            "error": "Invalid coordinates"
+        }, status=400)
+    
+    # Check API key
+    api_key = getattr(settings, 'GOOGLE_MAPS_API_KEY', None)
+    if not api_key:
+        return JsonResponse({
+            "success": False,
+            "error": "API key not configured"
+        }, status=500)
+    
+    # Google Routes API setup
+    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline"
+    }
+    
+    origin = {
+        "location": {
+            "latLng": {
+                "latitude": origin_lat,
+                "longitude": origin_lng
+            }
+        }
+    }
+    
+    destination = {
+        "location": {
+            "latLng": {
+                "latitude": float(event.latitude),
+                "longitude": float(event.longitude)
+            }
+        }
+    }
+    
+    # Define travel modes for Google API
+    GOOGLE_MODES = {
+        "drive": "DRIVE",
+        "walk": "WALK",
+        "transit": "TRANSIT",
+        "bicycle": "BICYCLE"
+    }
+    
+    travel_options_result = {}
+    
+    # Query each Google travel mode
+    for mode_key, mode_value in GOOGLE_MODES.items():
+        body = {
+            "origin": origin,
+            "destination": destination,
+            "travelMode": mode_value
+        }
+        
+        if mode_value == "DRIVE":
+            body["routingPreference"] = "TRAFFIC_AWARE_OPTIMAL"
+        
+        try:
+            response = requests.post(url, headers=headers, json=body, timeout=10)
+            
+            if response.status_code != 200:
+                error_data = response.json() if response.content else {}
+                error_msg = error_data.get("error", {}).get("message", f"HTTP {response.status_code}")
+                travel_options_result[mode_key] = {
+                    "available": False,
+                    "error": error_msg
+                }
+                continue
+            
+            data = response.json()
+            
+            if "routes" not in data or not data["routes"]:
+                travel_options_result[mode_key] = {
+                    "available": False,
+                    "error": "No route found"
+                }
+                continue
+            
+            route = data["routes"][0]
+            distance_m = route.get("distanceMeters", 0)
+            duration_str = route.get("duration", "")
+            polyline = route.get("polyline", {}).get("encodedPolyline", "")
+            
+            if distance_m > 0:
+                distance_km = distance_m / 1000
+                distance_mi = distance_m / 1609.34
+                distance_display = f"{distance_km:.1f} km ({distance_mi:.1f} mi)"
+            else:
+                distance_display = "Very close"
+            
+            duration_display = parse_duration(duration_str)
+            
+            # Add mode-specific details
+            if mode_key == "drive":
+                gas_cost = estimate_gas_cost(distance_m)
+                parking_info = get_parking_info(event.latitude, event.longitude)
+                
+                travel_options_result[mode_key] = {
+                    "available": True,
+                    "distance": distance_display,
+                    "distance_meters": distance_m,
+                    "distance_miles": distance_mi,
+                    "duration": duration_display,
+                    "duration_seconds": int(duration_str.replace('s', '')) if duration_str else 0,
+                    "gas_cost": gas_cost,
+                    "parking": parking_info,
+                    "polyline": polyline,
+                    "mode": mode_value,
+                    "mode_display": "Drive",
+                    "icon": "🚗",
+                    "deep_link": f"https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_lng}&destination={event.latitude},{event.longitude}&travelmode=driving"
+                }
+            elif mode_key == "walk":
+                travel_options_result[mode_key] = {
+                    "available": True,
+                    "distance": distance_display,
+                    "distance_meters": distance_m,
+                    "distance_miles": distance_mi,
+                    "duration": duration_display,
+                    "duration_seconds": int(duration_str.replace('s', '')) if duration_str else 0,
+                    "cost": {"formatted": "Free", "amount": 0},
+                    "polyline": polyline,
+                    "mode": mode_value,
+                    "mode_display": "Walk",
+                    "icon": "🚶",
+                    "deep_link": f"https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_lng}&destination={event.latitude},{event.longitude}&travelmode=walking"
+                }
+            elif mode_key == "transit":
+                transit_cost = estimate_transit_cost()
+                travel_options_result[mode_key] = {
+                    "available": True,
+                    "distance": distance_display,
+                    "distance_meters": distance_m,
+                    "distance_miles": distance_mi,
+                    "duration": duration_display,
+                    "duration_seconds": int(duration_str.replace('s', '')) if duration_str else 0,
+                    "cost": transit_cost,
+                    "polyline": polyline,
+                    "mode": mode_value,
+                    "mode_display": "Public Transit",
+                    "icon": "🚌",
+                    "deep_link": f"https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_lng}&destination={event.latitude},{event.longitude}&travelmode=transit"
+                }
+            elif mode_key == "bicycle":
+                travel_options_result[mode_key] = {
+                    "available": True,
+                    "distance": distance_display,
+                    "distance_meters": distance_m,
+                    "distance_miles": distance_mi,
+                    "duration": duration_display,
+                    "duration_seconds": int(duration_str.replace('s', '')) if duration_str else 0,
+                    "cost": {"formatted": "Free", "amount": 0},
+                    "polyline": polyline,
+                    "mode": mode_value,
+                    "mode_display": "Bike",
+                    "icon": "🚴",
+                    "deep_link": f"https://www.google.com/maps/dir/?api=1&origin={origin_lat},{origin_lng}&destination={event.latitude},{event.longitude}&travelmode=bicycling"
+                }
+                
+        except requests.exceptions.Timeout:
+            travel_options_result[mode_key] = {
+                "available": False,
+                "error": "Request timed out"
+            }
+        except requests.exceptions.RequestException as e:
+            travel_options_result[mode_key] = {
+                "available": False,
+                "error": f"Connection error: {str(e)}"
+            }
+        except Exception as e:
+            travel_options_result[mode_key] = {
+                "available": False,
+                "error": f"Error: {str(e)}"
+            }
+    
+    # Add ride-hailing estimates (based on driving route)
+    if 'drive' in travel_options_result and travel_options_result['drive'].get('available'):
+        drive_distance = travel_options_result['drive'].get('distance_meters', 0)
+        drive_duration = travel_options_result['drive'].get('duration', 'Unknown')
+        
+        # Uber - use web link that works on all devices
+        uber_cost = estimate_uber_cost(drive_distance)
+        travel_options_result['uber'] = {
+            "available": True,
+            "distance": travel_options_result['drive']['distance'],
+            "distance_meters": drive_distance,
+            "distance_miles": travel_options_result['drive'].get('distance_miles', 0),
+            "duration": drive_duration,
+            "cost": uber_cost,
+            "mode": "UBER",
+            "mode_display": "Uber",
+            "icon": "🚕",
+            "deep_link": f"https://m.uber.com/ul/?action=setPickup&pickup[latitude]={origin_lat}&pickup[longitude]={origin_lng}&dropoff[latitude]={event.latitude}&dropoff[longitude]={event.longitude}"
+        }
+        
+        # Lyft - use web link that works on all devices
+        lyft_cost = estimate_lyft_cost(drive_distance)
+        travel_options_result['lyft'] = {
+            "available": True,
+            "distance": travel_options_result['drive']['distance'],
+            "distance_meters": drive_distance,
+            "distance_miles": travel_options_result['drive'].get('distance_miles', 0),
+            "duration": drive_duration,
+            "cost": lyft_cost,
+            "mode": "LYFT",
+            "mode_display": "Lyft",
+            "icon": "🚖",
+            "deep_link": f"https://lyft.com/ride?id=lyft&pickup[latitude]={origin_lat}&pickup[longitude]={origin_lng}&destination[latitude]={event.latitude}&destination[longitude]={event.longitude}"
+        }
+    else:
+        travel_options_result['uber'] = {
+            "available": False,
+            "error": "Driving route not available"
+        }
+        travel_options_result['lyft'] = {
+            "available": False,
+            "error": "Driving route not available"
+        }
+    
+    # Count available modes
+    available_modes = [k for k, v in travel_options_result.items() if v.get("available", False)]
+    
+    return JsonResponse({
+        "success": True,
+        "event_id": event_id,
+        "event_title": event.title,
+        "event_location": event.location,
+        "event_coordinates": {
+            "latitude": float(event.latitude),
+            "longitude": float(event.longitude)
+        },
+        "origin_coordinates": {
+            "latitude": origin_lat,
+            "longitude": origin_lng
+        },
+        "travel_options": travel_options_result,
+        "available_modes": available_modes,
+        "total_modes": len(travel_options_result)
+    })
