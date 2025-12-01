@@ -3,6 +3,9 @@ from accounts.models import UserProfile
 from django.conf import settings
 from django.utils import timezone
 from django.contrib import admin
+from urllib.parse import urlencode
+from datetime import datetime, timedelta
+import pytz
 
 # Create your models here.
 
@@ -72,6 +75,40 @@ class Event(models.Model):
     @property
     def is_upcoming(self):
         return self.date > timezone.localdate()
+    def google_calendar_url(self):
+
+        tz_name = getattr(settings, 'TIME_ZONE', 'UTC')
+        tz = pytz.timezone(tz_name)
+
+        if self.time:
+            local_start = datetime.combine(self.date, self.time)
+            if local_start.tzinfo is None:
+                local_start = tz.localize(local_start)
+
+            local_end = local_start + timedelta(hours=1)
+
+            start_utc = local_start.astimezone(pytz.utc) 
+            end_utc = local_end.astimezone(pytz.utc)
+
+            start_str = start_utc.strftime("%Y%m%dT%H%M%SZ")
+            end_str = end_utc.strftime("%Y%m%dT%H%M%SZ")
+        else:
+            start_str = self.date.strftime('%Y%m%d')
+            end_str = (self.date + timedelta(days=1)).strftime('%Y%m%d')
+
+        params = {
+            "action": "TEMPLATE",
+            "text": self.title,
+            "details": self.description or "",
+            "location": self.location,
+            "dates": f"{start_str}/{end_str}",
+        }
+
+        if tz_name:
+            params['ctz'] = tz_name
+
+        base = "https://calendar.google.com/calendar/render"
+        return f"{base}?{urlencode(params)}"
 
 class RSVP(models.Model):
     GOING = "going"
