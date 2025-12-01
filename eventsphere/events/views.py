@@ -64,7 +64,7 @@ def create_event(request):
 
             # Combine location and city for better geocoding
             full_address = f"{event.location}, {event.city}" if event.city else event.location
-            lat, lng = geocode_address(full_address)
+            lat, lng, _ = geocode_address(full_address)
             event.latitude = lat
             event.longitude = lng
 
@@ -110,7 +110,7 @@ def edit_event(request, event_id):
             # Only re-geocode if location or city changed
             if 'location' in form.changed_data or 'city' in form.changed_data:
                 full_address = f"{updated_event.location}, {updated_event.city}" if updated_event.city else updated_event.location
-                lat, lng = geocode_address(full_address)
+                lat, lng, _ = geocode_address(full_address)
                 updated_event.latitude = lat
                 updated_event.longitude = lng
 
@@ -401,8 +401,6 @@ def get_parking_info(event_lat, event_lng):
         "note": "Street and lot parking available nearby"
     }
 
-
-@login_required
 def travel_options(request, event_id):
     """
     Calculate comprehensive travel options to an event.
@@ -421,6 +419,7 @@ def travel_options(request, event_id):
     origin_lat = request.GET.get("origin_lat")
     origin_lng = request.GET.get("origin_lng")
     
+    origin_formatted_address = None
     if not origin_lat or not origin_lng:
         addr = request.GET.get("origin", "").strip()
         if not addr:
@@ -429,13 +428,14 @@ def travel_options(request, event_id):
                 "error": "No origin provided"
             }, status=400)
         
-        lat, lng = geocode_address(addr)
+        lat, lng, formatted_addr = geocode_address(addr)
         if lat is None or lng is None:
             return JsonResponse({
                 "success": False,
                 "error": f"Could not find location: {addr}"
             }, status=400)
         origin_lat, origin_lng = lat, lng
+        origin_formatted_address = formatted_addr
     
     try:
         origin_lat = float(origin_lat)
@@ -666,7 +666,7 @@ def travel_options(request, event_id):
     # Count available modes
     available_modes = [k for k, v in travel_options_result.items() if v.get("available", False)]
     
-    return JsonResponse({
+    response_data = {
         "success": True,
         "event_id": event_id,
         "event_title": event.title,
@@ -682,4 +682,10 @@ def travel_options(request, event_id):
         "travel_options": travel_options_result,
         "available_modes": available_modes,
         "total_modes": len(travel_options_result)
-    })
+    }
+    
+    # Include formatted address if available
+    if origin_formatted_address:
+        response_data["origin_formatted_address"] = origin_formatted_address
+    
+    return JsonResponse(response_data)
