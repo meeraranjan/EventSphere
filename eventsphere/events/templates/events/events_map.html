@@ -32,9 +32,9 @@
     width: 100%;
     margin-top: 10px;
     padding: 10px 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--yellow-bright) 0%, var(--yellow-soft) 100%);
     border: none;
-    color: white;
+    color: var(--brown);
     border-radius: 8px;
     font-size: 0.9rem;
     font-weight: 600;
@@ -235,7 +235,7 @@
             {{ filter_form.radius }}
         </div>
         <div class="col-12 col-md-3 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary">Apply</button>
+            <button type="submit" class="btn btn-yellow">Apply</button>
             <a href="{% url 'events_map' %}" class="btn btn-secondary">Reset</a>
         </div>
     </form>
@@ -254,7 +254,7 @@
                 <button
                     type="button"
                     id="location-search-btn"
-                    class="btn btn-outline-primary btn-sm">
+                    class="btn btn-yellow btn-sm">
                     Use address
                 </button>
             </div>
@@ -262,7 +262,7 @@
                 <button
                     type="button"
                     id="share-location-btn"
-                    class="btn btn-outline-secondary btn-sm">
+                    class="btn btn-yellow btn-outline-secondary btn-sm">
                     Share my device location
                 </button>
             </div>
@@ -306,20 +306,20 @@
                     <div class="mt-2">
                         {% if event.ticket_url %}
                             {% if user.is_authenticated %}
-                                <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-primary btn-sm">
+                                <a href="{{ event.ticket_url }}" target="_blank" class="btn  btn-yellow btn-primary btn-sm">
                                     Book Tickets
                                 </a>
                             {% else %}
-                                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-sm">
+                                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-yellow btn-primary btn-sm">
                                     Book Tickets
                                 </a>
                             {% endif %}
                         {% endif %}
-                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary btn-sm">
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-yellow btn-outline-secondary btn-sm">
                             View Details
                         </a>
                         {% if user.is_authenticated %}
-                            <a href="{{ event.google_calendar_url }}" target="_blank" class="btn btn-success btn-sm">
+                            <a href="{{ event.google_calendar_url }}" target="_blank" class="btn btn-yellow btn-success btn-sm">
                                 Add to Google Calendar
                             </a>
                         {% endif %}
@@ -346,7 +346,7 @@
                                        style="width:260px;"
                                        placeholder="Contact email (optional)"
                                        value="{{ request.user.email }}">
-                                <button type="submit" class="btn btn-primary btn-sm">
+                                <button type="submit" class="btn btn-yellow btn-primary btn-sm">
                                     {% if user_rsvp_by_event|get_item:event.id %}
                                         Update RSVP
                                     {% else %}
@@ -357,7 +357,7 @@
                         </form>
                     {% else %}
                         <div class="mt-2">
-                            <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-outline-primary btn-sm">
+                            <a href="{% url 'login' %}?next={{ request.get_full_path }}" class="btn btn-yellow btn-outline-primary btn-sm">
                                 Log in to RSVP
                             </a>
                         </div>
@@ -419,7 +419,7 @@ function initMap() {
                 </div>
             </div>
             
-            <a href="/events/${event.id}/" style="display:block; margin-top:10px; background:#2563eb; color:#fff; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:0.85rem; text-align:center; font-weight: 600;">
+            <a href="/events/${event.id}/" style="display:block; margin-top:10px; background: var(--yellow-bright);  color: var(--brown); padding:10px 14px; border-radius:8px; text-decoration:none; font-size:0.85rem; text-align:center; font-weight: 600;">
                 View Full Details →
             </a>
         </div>
