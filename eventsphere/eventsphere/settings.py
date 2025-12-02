@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'events',
     'attendees',
     'admin_dashboard',
+    'messaging',
 
 ]
 

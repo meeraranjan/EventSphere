@@ -44,6 +44,12 @@
                         </li>
 
                     {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'conversation_list' %}active{% endif %}"
+                            href="{% url 'conversation_list' %}">
+                            Messaging
+                            </a>
+                        </li>
                     {% if user.userprofile.user_type == 'ATTENDEE' %}
                     {% with attendee=user.userprofile.attendee %}
                         <li class="nav-item">
@@ -54,7 +60,7 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'attendee_my_events' %}active{% endif %}"
                             href="{% url 'attendee_my_events' %}">My Events</a>
-                        /li>
+                        </li>
 
                 {% elif user.userprofile.user_type == 'ORGANIZER' %}
                         <li class="nav-item">

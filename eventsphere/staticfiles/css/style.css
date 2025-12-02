@@ -32,3 +32,32 @@ footer.bg-dark {
 .centered-heading h4 {
     color: #8B4513; /* brown text */
 }
+/* Yellow button (Start New Conversation) */
+.btn-yellow {
+    background-color: #F2C94C !important;
+    border-color: #F2C94C !important;
+    color: #4A2C2A !important;
+    font-weight: 600;
+}
+.btn-yellow:hover {
+    background-color: #e5b941 !important;
+    border-color: #e5b941 !important;
+}
+
+/* Brown button (Open Chat) */
+.btn-brown {
+    background-color: #4A2C2A !important;
+    border-color: #4A2C2A !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+.btn-brown:hover {
+    background-color: #3a201f !important;
+    border-color: #3a201f !important;
+}
+
+/* Small group badge styling */
+.small-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+}
