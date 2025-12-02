@@ -52,7 +52,8 @@
                   data-location="{{ event.location }}"
                   data-ticket="{{ event.ticket_url }}"
                   data-rsvp-count="{{ event.rsvps.count }}"
-                  data-export-url="{% url 'event_attendees_export_csv' event.id %}">
+                  data-export-url="{% url 'event_attendees_export_csv' event.id %}"
+                  data-reminder-url="{% url 'event_send_reminder' event.id %}">
                 View Details
               </a>
 
@@ -104,6 +105,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('eventDetailsModal');
+  let currentReminderUrl = null;
 
   modal.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
@@ -112,9 +114,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const time = button.getAttribute('data-time');
     const location = button.getAttribute('data-location');
     const ticket = button.getAttribute('data-ticket');
-    const rsvpCount = button.getAttribute('data-rsvp-count') || '0';
-    
-    modal.querySelector('#eventRsvpCount').textContent = rsvpCount;
+    const reminderUrl = button.getAttribute('data-reminder-url') || null;
+
+    currentReminderUrl = reminderUrl;
+
     modal.querySelector('#eventTitle').textContent = title;
     modal.querySelector('#eventDate').textContent = date;
     modal.querySelector('#eventTime').textContent = time;
@@ -128,19 +131,19 @@ document.addEventListener('DOMContentLoaded', function() {
       ticketLink.href = '#';
       ticketLink.classList.add('disabled');
     }
-    const exportUrl = button.getAttribute('data-export-url');
-    const exportBtn = document.getElementById('exportListBtn');  // your existing button
-    if (exportBtn && exportUrl) {
-      exportBtn.onclick = () => { window.location.href = exportUrl; };
+  });
+
+  const reminderBtn = document.getElementById('sendReminderBtn');
+  reminderBtn.addEventListener('click', () => {
+    if (currentReminderUrl) {
+      window.location.href = currentReminderUrl; 
+    } else {
+      alert('No reminder URL available for this event.');
     }
   });
 
-  // Placeholder actions
-  document.getElementById('sendReminderBtn').addEventListener('click', () => {
-    alert('✅ Reminder sent to all attendees! (placeholder)');
-  });
-
-  document.getElementById('exportListBtn').addEventListener('click', () => {
+  const exportBtn = document.getElementById('exportListBtn');
+  exportBtn.addEventListener('click', () => {
     alert('📄 Attendee list exported! (placeholder)');
   });
 });
