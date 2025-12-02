@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Default Bootstrap Back Button -->
+    <a href="{% url 'conversation_list' %}"
+       class="btn btn-outline-secondary mb-3">
+       ← Back to Conversations
+    </a>
+
+    <h2 class="mb-4">Start a New Conversation</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Username(s)</strong></label>
+                    <input type="text"
+                           name="usernames"
+                           class="form-control"
+                           placeholder="Enter one or more usernames (comma-separated)"
+                           required>
+                </div>
+
+                {% if error %}
+                    <p class="text-danger">{{ error }}</p>
+                {% endif %}
+
+                <!-- Yellow Start Chat Button -->
+                <button class="btn w-100"
+                        style="background-color:#EAB308;
+                               color:white;
+                               font-weight:600;
+                               border:none;">
+                    Start Chat
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

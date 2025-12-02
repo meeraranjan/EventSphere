@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+    <h3>Rename Group Chat</h3>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <label class="form-label mt-3">New Group Name</label>
+        <input type="text" name="name" class="form-control" 
+               value="{{ conversation.name }}" required>
+
+        <button class="btn btn-primary mt-3" type="submit">Save</button>
+
+        <a href="{% url 'view_conversation' conversation.id %}" 
+           class="btn btn-secondary mt-3 ms-2">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}

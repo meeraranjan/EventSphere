@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Create Group Chat</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Group Name</strong></label>
+                    <input type="text" name="name" class="form-control" placeholder="Optional group name...">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Usernames</strong></label>
+                    <input type="text" name="usernames" class="form-control"
+                           placeholder="Enter usernames, separated by commas">
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Create Group</button>
+            </form>
+        </div>
+    </div>
+
+    <a href="{% url 'conversation_list' %}" class="btn btn-secondary">
+        ← Back to Conversations
+    </a>
+
+</div>
+{% endblock %}

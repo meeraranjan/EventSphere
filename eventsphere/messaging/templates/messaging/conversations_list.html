@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">My Conversations</h2>
+
+    <!-- Yellow Start New Conversation Button -->
+    <a href="{% url 'start_conversation' %}"
+       class="btn btn-yellow mb-4">
+        + Start New Conversation
+    </a>
+
+    {% if conversations %}
+        {% for item in conversations %}
+            {% with convo=item.convo others=item.others %}
+
+            <div class="card mb-3 shadow-sm p-3">
+
+                <!-- Conversation Name -->
+                <div class="d-flex align-items-center mb-1">
+
+                    {% if convo.participants.count > 2 %}
+                        <strong style="font-size: 1.3rem;">
+                            {{ convo.name|default:"Group Chat" }}
+                        </strong>
+
+                        <!-- Brown Group Badge -->
+                        <span class="badge bg-success ms-2">
+                            Group
+                        </span>
+                    {% else %}
+                        <strong style="font-size: 1.3rem;">
+                            {{ others|join:", " }}
+                        </strong>
+                    {% endif %}
+
+                    {% if item.unread_count > 0 %}
+                        <span class="badge bg-warning ms-2">
+                            {{ item.unread_count }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if convo.participants.count > 2 %}
+                    <div class="text-muted small mb-2">
+                        <strong>Members:</strong> {{ others|join:", " }}
+                    </div>
+                {% endif %}
+
+                <!-- Latest Message Preview -->
+                {% if item.latest_text %}
+                    <p class="mt-2 mb-1">
+                        <strong>{{ item.latest_sender }}:</strong>
+                        {{ item.latest_text|truncatewords:8 }}
+                    </p>
+                    <p class="text-muted small mb-2">
+                        {{ item.latest_time|date:"M. d, Y g:i a" }}
+                    </p>
+                {% else %}
+                    <p class="text-muted mb-1">No messages yet.</p>
+                    <p class="text-muted small mb-2">
+                        Created {{ convo.created_at|date:"M. d, Y g:i a" }}
+                    </p>
+                {% endif %}
+
+                <!-- Brown "Open Chat" Button -->
+                <div class="text-end">
+                    <a href="{% url 'view_conversation' convo.id %}"
+                       class="btn btn-yellow btn-sm px-4">
+                        Open Chat
+                    </a>
+                </div>
+
+            </div>
+
+            {% endwith %}
+        {% endfor %}
+    {% else %}
+        <p>You have not started any conversations yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
