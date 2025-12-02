@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4">My Events</h2>
-  <a href="{% url 'create_event' %}" class="btn btn-success mb-4">+ Post New Event</a>
+  <a href="{% url 'create_event' %}" class="btn btn-yellow btn-success mb-4">+ Post New Event</a>
 
   {% if events %}
     {% for event in events %}
@@ -38,12 +38,12 @@
             <div class="col-md-4">
               <div class="d-flex flex-column gap-2">
                 <div class="d-flex gap-2">
-                  <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm w-50">Edit</a>
+                  <a href="{% url 'edit_event' event.id %}" class="btn btn-yellow btn-warning btn-sm w-50">Edit</a>
                   <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm w-50">Delete</a>
                 </div>
 
               <a href="#"
-                  class="btn btn-primary btn-sm w-100"
+                  class="btn btn-primary btn-yellow btn-sm w-100"
                   data-bs-toggle="modal"
                   data-bs-target="#eventDetailsModal"
                   data-title="{{ event.title }}"
@@ -57,10 +57,10 @@
               </a>
 
               <div class="d-flex gap-2">
-                <a href="{% url 'event_attendees' event.id %}" class="btn btn-outline-secondary btn-sm w-50">
+                <a href="{% url 'event_attendees' event.id %}" class="btn btn-yellow btn-outline-secondary btn-sm w-50">
                   Manage Attendees
                 </a>
-                <a href="{% url 'event_attendees_export_csv' event.id %}" class="btn btn-outline-primary btn-sm w-50">
+                <a href="{% url 'event_attendees_export_csv' event.id %}" class="btn btn-yellow btn-outline-primary btn-sm w-50">
                   Export CSV
                 </a>
               </div>
@@ -92,9 +92,9 @@
 
         <hr>
         <div class="d-grid gap-2">
-          <button class="btn btn-warning" id="sendReminderBtn">Send Reminder to All Attendees</button>
-          <button class="btn btn-secondary" id="exportListBtn">Export Attendee List</button>
-          <a id="ticketLink" href="#" target="_blank" class="btn btn-info text-white">Ticket Link</a>
+          <button class="btn btn-yellow btn-warning" id="sendReminderBtn">Send Reminder to All Attendees</button>
+          <button class="btn btn-yellow btn-secondary" id="exportListBtn">Export Attendee List</button>
+          <a id="ticketLink" href="#" target="_blank" class="btn btn-yellow btn-info text-white">Ticket Link</a>
         </div>
       </div>
     </div>

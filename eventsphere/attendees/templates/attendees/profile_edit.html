@@ -7,7 +7,7 @@
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-success">Save</button>
+            <button type="submit" class="btn btn-yellow btn-success">Save</button>
             <a href="{% url 'profile_view' form.instance.id %}" class="btn btn-secondary ms-2">Cancel</a>
         </form>
     </div>

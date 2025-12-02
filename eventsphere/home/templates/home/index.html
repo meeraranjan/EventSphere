@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <header class="masthead bg-index text-yellow text-center py-4">
   <div class="container d-flex align-items-center flex-column pt-2">
-    <h2>EventSphere</h2>
-    <p style="color: white;">Connect. Coordinate. Celebrate.</p>
+    <img src="{% static 'img/logo.jpg' %}" class="logo-img mb-3" alt="Logo" />
   </div>
 </header>
 <div class="p-3 centered-heading text-center">
