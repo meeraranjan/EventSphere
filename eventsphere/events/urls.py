@@ -12,4 +12,5 @@ urlpatterns = [
     path("<int:event_id>/attendees/export/", views.event_attendees_export_csv, name="event_attendees_export_csv"),
     path("<int:event_id>/rsvp/", views.rsvp_event, name="rsvp_event"),
     path('<int:event_id>/', views.event_detail, name='event_detail'),
+     path('attendees/<int:event_id>/remind/', views.event_send_reminder, name='event_send_reminder'),
 ]
