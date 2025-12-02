@@ -6,8 +6,7 @@
 
     <!-- Yellow Start New Conversation Button -->
     <a href="{% url 'start_conversation' %}"
-       class="btn mb-4"
-       style="background-color:#EAB308; color:white; font-weight:600; border:none;">
+       class="btn btn-yellow mb-4">
         + Start New Conversation
     </a>
 
@@ -26,8 +25,7 @@
                         </strong>
 
                         <!-- Brown Group Badge -->
-                        <span class="badge ms-2"
-                              style="background-color:#43240A; color:white; font-size:0.75rem; padding:4px 8px;">
+                        <span class="badge bg-success ms-2">
                             Group
                         </span>
                     {% else %}
@@ -37,7 +35,7 @@
                     {% endif %}
 
                     {% if item.unread_count > 0 %}
-                        <span class="badge bg-danger ms-2">
+                        <span class="badge bg-warning ms-2">
                             {{ item.unread_count }}
                         </span>
                     {% endif %}
@@ -68,8 +66,7 @@
                 <!-- Brown "Open Chat" Button -->
                 <div class="text-end">
                     <a href="{% url 'view_conversation' convo.id %}"
-                       class="btn btn-sm px-4"
-                       style="background-color:#43240A; color:white; border:none; font-weight:500;">
+                       class="btn btn-yellow btn-sm px-4">
                         Open Chat
                     </a>
                 </div>
