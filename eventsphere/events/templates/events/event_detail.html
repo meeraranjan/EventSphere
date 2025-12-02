@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="container mt-4">
     <h2 class="mb-3">{{ event.title }}</h2>
 
@@ -51,5 +52,633 @@
         {% endif %}
         <a href="javascript:history.back()" class="btn btn-secondary btn-sm">Back</a>
     </div>
+    
+    <button class="travel-toggle-btn" id="travel-btn-detail" onclick="toggleTravelOptionsDetail()">
+        🚗 View Travel Options
+    </button>
+
+<div id="travel-section-detail" class="travel-section">
+        <div class="location-input-group">
+            <label for="starting-location">Enter your starting location:</label>
+            <div class="location-input-row">
+                <input 
+                    type="text" 
+                    id="starting-location" 
+                    class="location-input" 
+                    placeholder="Enter address or landmark..."
+                    onkeypress="handleLocationInputKeyPress(event)"
+                >
+                <button class="location-btn location-btn-primary" onclick="calculateRoutes()">
+                    Calculate Routes
+                </button>
+                <button class="location-btn location-btn-secondary" onclick="useMyLocation()">
+                    📍 Use My Location
+                </button>
+            </div>
+            <div id="location-status" class="location-status"></div>
+        </div>
+
+        <div id="travel-results">
+            <div class="travel-empty">
+                👆 Enter your starting location above to see travel options
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+
+.travel-toggle-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.travel-toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Travel Section - Hidden by default, SAME AS INFO WINDOW */
+.travel-section {
+    display: none;
+    margin-top: 12px;
+    animation: slideDown 0.3s ease;
+}
+
+.travel-section.show {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Location Input */
+.location-input-group {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.location-input-group label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    display: block;
+    font-size: 0.85rem;
+}
+
+.location-input-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.location-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.location-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.location-input.error {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+.location-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.location-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.location-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+}
+
+.location-btn-secondary {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.location-btn-secondary:hover {
+    background: #667eea;
+    color: white;
+}
+
+.location-status {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.location-status.success { color: #38a169; }
+.location-status.error { color: #e53e3e; }
+
+/* Travel Cards Grid - EXACT SAME AS INFO WINDOW */
+.travel-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.travel-card {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.travel-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.travel-card.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.travel-card.unavailable:hover {
+    transform: none;
+    border-color: #e0e0e0;
+    box-shadow: none;
+}
+
+.travel-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.travel-card-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.travel-card-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1a202c;
+    margin: 0;
+}
+
+.travel-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.travel-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.travel-card-label {
+    color: #718096;
+    font-weight: 500;
+}
+
+.travel-card-value {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.travel-card-cost {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #667eea;
+    text-align: center;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.travel-card-cost.free {
+    color: #34a853;
+}
+
+.travel-card-unavailable {
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+.travel-card[data-mode="drive"] { border-color: #4285f4; }
+.travel-card[data-mode="walk"] { border-color: #34a853; }
+.travel-card[data-mode="transit"] { border-color: #fbbc04; }
+.travel-card[data-mode="bicycle"] { border-color: #ea4335; }
+.travel-card[data-mode="uber"] { border-color: #000000; }
+.travel-card[data-mode="lyft"] { border-color: #ff00bf; }
+
+
+.travel-loading {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.travel-error {
+    padding: 12px;
+    background: #fee;
+    color: #c33;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.travel-empty {
+    padding: 30px;
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+    .travel-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .travel-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+let userLat = null;
+let userLng = null;
+const eventLat = {{ event.latitude|default:"null" }};
+const eventLng = {{ event.longitude|default:"null" }};
+const eventId = {{ event.id }};
+
+// Toggle function - same as info window
+function toggleTravelOptionsDetail() {
+    const section = document.getElementById('travel-section-detail');
+    const button = document.getElementById('travel-btn-detail');
+    
+    if (!section || !button) return;
+    
+    const isShowing = section.classList.contains('show');
+    
+    if (isShowing) {
+        section.classList.remove('show');
+        button.innerHTML = '🚗 View Travel Options';
+    } else {
+        section.classList.add('show');
+        button.innerHTML = '❌ Hide Travel Options';
+    }
+}
+
+function setLocationStatus(message, isError = false) {
+    const statusEl = document.getElementById('location-status');
+    const inputEl = document.getElementById('starting-location');
+    
+    if (statusEl) {
+        statusEl.textContent = message;
+        statusEl.className = isError ? 'location-status error' : 'location-status success';
+    }
+    
+    // Add error styling to input field
+    if (inputEl) {
+        if (isError && message) {
+            inputEl.classList.add('error');
+        } else {
+            inputEl.classList.remove('error');
+        }
+    }
+}
+
+function handleLocationInputKeyPress(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        calculateRoutes();
+    }
+}
+
+function useMyLocation() {
+    if (!navigator.geolocation) {
+        setLocationStatus('Geolocation is not supported by your browser', true);
+        return;
+    }
+    setLocationStatus('Getting your location...');
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+            document.getElementById('starting-location').value = 
+                `Your Location (${userLat.toFixed(4)}, ${userLng.toFixed(4)})`;
+            setLocationStatus('Location set to your current location.');
+            calculateRoutes();
+        },
+        (error) => {
+            setLocationStatus('Unable to get your location. Please enter an address.', true);
+        }
+    );
+}
+
+async function calculateRoutes() {
+    const addressInput = document.getElementById('starting-location');
+    if (!addressInput) {
+        console.error('Starting location input not found');
+        return;
+    }
+    
+    const address = addressInput.value.trim();
+    
+    // Check if address is a coordinate string (from "Use My Location")
+    const isCoordinateString = address.startsWith('Your Location (');
+    
+    // Determine what to use: typed address takes priority over stored coordinates
+    const hasTypedAddress = address && !isCoordinateString;
+    const hasStoredCoordinates = userLat && userLng;
+    
+    // Clear previous status
+    setLocationStatus('');
+    
+    // Validate input
+    if (!hasTypedAddress && !hasStoredCoordinates) {
+        setLocationStatus('Please enter a starting location', true);
+        const resultsDiv = document.getElementById('travel-results');
+        if (resultsDiv) {
+            resultsDiv.innerHTML = '<div class="travel-empty">👆 Enter your starting location above to see travel options</div>';
+        }
+        return;
+    }
+    
+    // Basic validation for typed addresses
+    if (hasTypedAddress) {
+        if (address.length < 3) {
+            setLocationStatus('Please enter a more specific location (at least 3 characters)', true);
+            const resultsDiv = document.getElementById('travel-results');
+            if (resultsDiv) {
+                resultsDiv.innerHTML = '<div class="travel-error">❌ Location too short. Please enter a complete address or landmark.</div>';
+            }
+            return;
+        }
+    }
+    
+    if (!eventLat || !eventLng) {
+        setLocationStatus('Event location not available', true);
+        const resultsDiv = document.getElementById('travel-results');
+        if (resultsDiv) {
+            resultsDiv.innerHTML = '<div class="travel-error">❌ This event does not have a valid location.</div>';
+        }
+        return;
+    }
+
+    const resultsDiv = document.getElementById('travel-results');
+    if (!resultsDiv) {
+        console.error('Travel results container not found');
+        return;
+    }
+    
+    // Show appropriate loading message
+    let loadingMessage = '⏳ Calculating routes...';
+    let statusMessage = 'Calculating routes...';
+    
+    if (hasTypedAddress) {
+        statusMessage = `Location set to "${address}"...`;
+        loadingMessage = `⏳ Calculating routes...`;
+    } else if (hasStoredCoordinates) {
+        statusMessage = 'Location set to your current location...';
+        loadingMessage = '⏳ Calculating routes...';
+    }
+    
+    resultsDiv.innerHTML = `<div class="travel-loading">${loadingMessage}</div>`;
+    setLocationStatus(statusMessage);
+
+    try {
+        let url = `/events/${eventId}/travel-options/?`;
+        
+        // Priority: typed address > stored coordinates
+        if (hasTypedAddress) {
+            // User typed an address - geocode it
+            url += `origin=${encodeURIComponent(address)}`;
+        } else if (hasStoredCoordinates) {
+            // Use stored coordinates (from "Use My Location")
+            url += `origin_lat=${userLat}&origin_lng=${userLng}`;
+        } else {
+            setLocationStatus('Please enter a valid location', true);
+            resultsDiv.innerHTML = '<div class="travel-empty">👆 Enter your starting location above to see travel options</div>';
+            return;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Check for errors in response
+        if (!response.ok || !data.success) {
+            let errorMessage = data.error || `Server error (${response.status})`;
+            
+            // Make error messages more user-friendly
+            if (errorMessage.includes('Could not find location')) {
+                errorMessage = `Could not find the location "${address}". Please check the spelling and try again, or use a more specific address.`;
+            } else if (errorMessage.includes('No origin provided')) {
+                errorMessage = 'Please enter a starting location.';
+            } else if (errorMessage.includes('Invalid coordinates')) {
+                errorMessage = 'Invalid location coordinates. Please try using "Use My Location" again or enter an address.';
+            } else if (errorMessage.includes('Event location coordinates')) {
+                errorMessage = 'This event does not have a valid location.';
+            } else if (errorMessage.includes('API key')) {
+                errorMessage = 'Service temporarily unavailable. Please try again later.';
+            }
+            
+            // Show brief status and full error in results area
+            setLocationStatus('Error: Invalid location', true);
+            resultsDiv.innerHTML = `<div class="travel-error">❌ ${errorMessage}</div>`;
+            return;
+        }
+
+        if (data.origin_coordinates) {
+            userLat = data.origin_coordinates.latitude;
+            userLng = data.origin_coordinates.longitude;
+        }
+
+        // Show location set message if formatted address is available
+        if (data.origin_formatted_address) {
+            setLocationStatus(`Location set to "${data.origin_formatted_address}".`, false);
+            // Update input field with formatted address
+            const addressInput = document.getElementById('starting-location');
+            if (addressInput) {
+                addressInput.value = data.origin_formatted_address;
+            }
+        } else {
+            setLocationStatus('✓ Routes calculated successfully', false);
+        }
+        
+        displayTravelOptions(data);
+    } catch (error) {
+        console.error('Travel options error:', error);
+        let errorMessage = 'Unable to calculate routes. ';
+        
+        // Network errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage += 'Please check your internet connection and try again.';
+        } else {
+            errorMessage += error.message || 'An unexpected error occurred.';
+        }
+        
+        // Show brief status and full error in results area
+        setLocationStatus('Error: Connection issue', true);
+        resultsDiv.innerHTML = `<div class="travel-error">❌ ${errorMessage}</div>`;
+    }
+}
+
+function displayTravelOptions(travelData) {
+    const resultsDiv = document.getElementById('travel-results');
+    if (!resultsDiv) return;
+    renderDetailTravelOptions(resultsDiv, travelData);
+}
+
+// Render function - same as info window
+function renderDetailTravelOptions(container, travelData) {
+    if (!container) return;
+    
+    const travelOptions = travelData.travel_options || {};
+    let html = '<div class="travel-cards-grid">';
+    
+    const modes = [
+        { key: 'drive' },
+        { key: 'uber' },
+        { key: 'lyft' },
+        { key: 'transit' },
+        { key: 'walk' },
+        { key: 'bicycle' }
+    ];
+    
+    modes.forEach(mode => {
+        const option = travelOptions[mode.key];
+        
+        if (option && option.available) {
+            let deepLink = option.deep_link || '#';
+            let distanceDisplay = option.distance_miles 
+                ? option.distance_miles.toFixed(1) + ' mi' 
+                : option.distance.split('(')[0].trim();
+            let titleHtml = '';
+            if (mode.key === 'uber') {
+                // Uber logo SVG (black square with white "U")
+                titleHtml = '<div class="travel-card-logo" style="height: 24px; display: flex; align-items: center;"><svg width="50" height="24" viewBox="0 0 50 24" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="24" rx="4" fill="#000"/><text x="25" y="17" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Uber</text></svg></div>';
+            } else if (mode.key === 'lyft') {
+                // Lyft logo SVG (pink background with white text)
+                titleHtml = '<div class="travel-card-logo" style="height: 24px; display: flex; align-items: center;"><svg width="50" height="24" viewBox="0 0 50 24" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="24" rx="4" fill="#FF00BF"/><text x="25" y="17" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle" letter-spacing="1px">LYFT</text></svg></div>';
+            } else {
+                titleHtml = `<h4 class="travel-card-title">${option.mode_display}</h4>`;
+            }
+
+            html += `
+                <a href="${deepLink}" class="travel-card" data-mode="${mode.key}" target="_blank">
+                    <div class="travel-card-header">
+                        <div class="travel-card-icon">${option.icon}</div>
+                        ${titleHtml}
+                    </div>
+                    <div class="travel-card-body">
+                        <div class="travel-card-row">
+                            <span class="travel-card-label">ETA</span>
+                            <span class="travel-card-value">${option.duration}</span>
+                        </div>
+                        <div class="travel-card-row">
+                            <span class="travel-card-label">Distance</span>
+                            <span class="travel-card-value">${distanceDisplay}</span>
+                        </div>`;
+            
+            html += `</div>`;
+            
+            if (mode.key === 'drive') {
+                html += `<div class="travel-card-cost">Gas: ${option.gas_cost.formatted}</div>`;
+            } else if (option.cost) {
+                const costClass = option.cost.amount === 0 ? 'free' : '';
+                const costDisplay = option.cost.range || option.cost.formatted;
+                html += `<div class="travel-card-cost ${costClass}">${costDisplay}</div>`;
+            }
+            
+            html += `</a>`;
+        } else {
+            const modeNames = { 
+                drive: 'Drive', transit: 'Transit', walk: 'Walk', bicycle: 'Bike' 
+            };
+            const modeIcons = { 
+                drive: '🚗', uber: '🚕', lyft: '🚖', 
+                transit: '🚌', walk: '🚶', bicycle: '🚴' 
+            };
+            
+            html += `
+                <div class="travel-card unavailable" data-mode="${mode.key}">
+                    <div class="travel-card-header">
+                        <div class="travel-card-icon">${modeIcons[mode.key]}</div>
+                        <h4 class="travel-card-title">${modeNames[mode.key]}</h4>
+                    </div>
+                    <div class="travel-card-unavailable">Not available</div>
+                </div>`;
+        }
+    });
+    
+    html += '</div>';
+    
+    // Add warning about estimated prices
+    html += '<div class="travel-price-warning" style="margin-top: 12px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 0.75rem; color: #856404; text-align: center;">';
+    html += '⚠️ <strong>Note:</strong> All prices are estimates and may vary based on traffic, demand, and other factors.';
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+</script>
 {% endblock %}

@@ -3,6 +3,216 @@
 {% load events_extras %}
 
 {% block content %}
+
+<style>
+/* Travel Options Container */
+.travel-section {
+    display: none;
+    margin-top: 12px;
+    animation: slideDown 0.3s ease;
+}
+
+.travel-section.show {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.travel-toggle-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.travel-toggle-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Travel Cards Grid */
+.travel-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.travel-card {
+    background: white;
+    border-radius: 10px;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.travel-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.travel-card.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.travel-card.unavailable:hover {
+    transform: none;
+    border-color: #e0e0e0;
+    box-shadow: none;
+}
+
+/* Card Header */
+.travel-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.travel-card-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.travel-card-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1a202c;
+    margin: 0;
+}
+
+/* Card Body */
+.travel-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.travel-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.travel-card-label {
+    color: #718096;
+    font-weight: 500;
+}
+
+.travel-card-value {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.travel-card-cost {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #667eea;
+    text-align: center;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.travel-card-cost.free {
+    color: #34a853;
+}
+
+.travel-card-unavailable {
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Special styling for specific modes */
+.travel-card[data-mode="drive"] {
+    border-color: #4285f4;
+}
+
+.travel-card[data-mode="walk"] {
+    border-color: #34a853;
+}
+
+.travel-card[data-mode="transit"] {
+    border-color: #fbbc04;
+}
+
+.travel-card[data-mode="bicycle"] {
+    border-color: #ea4335;
+}
+
+.travel-card[data-mode="uber"] {
+    border-color: #000000;
+}
+
+.travel-card[data-mode="lyft"] {
+    border-color: #ff00bf;
+}
+
+/* Parking badge for drive mode */
+.parking-badge {
+    font-size: 0.7rem;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    text-align: center;
+}
+
+/* Loading state */
+.travel-loading {
+    padding: 20px;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.travel-error {
+    padding: 12px;
+    background: #fee;
+    color: #c33;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .travel-cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
+
 <div class="container mt-4">
     <h2 class="mb-4">Events Near You</h2>
 
@@ -30,10 +240,52 @@
         </div>
     </form>
 
+    <div class="card card-body mb-3">
+        <h5 class="mb-2">Starting location</h5>
+        <div class="row g-2 align-items-center">
+            <div class="col-sm">
+                <input
+                    type="text"
+                    id="manual-location-input"
+                    class="form-control form-control-sm"
+                    placeholder="Enter an address or landmark">
+            </div>
+            <div class="col-auto">
+                <button
+                    type="button"
+                    id="location-search-btn"
+                    class="btn btn-outline-primary btn-sm">
+                    Use address
+                </button>
+            </div>
+            <div class="col-auto">
+                <button
+                    type="button"
+                    id="share-location-btn"
+                    class="btn btn-outline-secondary btn-sm">
+                    Share my device location
+                </button>
+            </div>
+        </div>
+        <p id="location-status" class="text-muted small mb-0 mt-2">
+            Location not shared yet.
+        </p>
+    </div>
+
     <p class="text-muted">{{ events|length }} event(s) match your filters.</p>
 
     <!-- Google Map -->
-    <div id="map" style="height: 600px;" class="mb-4"></div>
+    <div id="map"
+         style="height: 600px;"
+         class="mb-4"
+         data-user-lat="{{ user_lat|default_if_none:'' }}"
+         data-user-lng="{{ user_lng|default_if_none:'' }}">
+    </div>
+    <script
+        id="events-json-data"
+        type="application/json">
+        {{ events_json|safe }}
+    </script>
 
     <!-- Event List -->
     <div class="row">
@@ -128,7 +380,10 @@ function initMap() {
         center: defaultCenter,
     });
 
-    const events = {{ events_json|safe }};
+    const eventsScript = document.getElementById("events-json-data");
+    const events = eventsScript
+        ? JSON.parse(eventsScript.textContent || "[]")
+        : [];
     let activeInfoWindow = null;
     const bounds = new google.maps.LatLngBounds();
 
@@ -145,28 +400,40 @@ function initMap() {
             title: event.title
         });
 
-        const infowindow = new google.maps.InfoWindow({
-            content: `
-                <div style="max-width: 300px;">
-                    <h6>${event.title}</h6>
-                    ${event.image_url ? `<img src="${event.image_url}" style="max-width: 100%; height: auto; margin: 10px 0;">` : ''}
-                    <p style="margin: 5px 0;">${event.description}</p>
-                    <p style="margin: 5px 0;"><strong>Date:</strong> ${event.date}${event.time ? ' at ' + event.time : ''}</p>
-                    <p style="margin: 5px 0;"><strong>Location:</strong> ${event.location_name}</p>
-                    <a href="/events/${event.id}/"
-                       style="display:inline-block; margin-top:6px; background:#2563eb; 
-                              color:#fff; padding:6px 10px; border-radius:6px; 
-                              text-decoration:none; font-size:0.85rem;">
-                        View Details →
-                    </a>
+       const infowindow = new google.maps.InfoWindow({
+    content: `
+        <div style="max-width: 380px;">
+            <h6 style="margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">${event.title}</h6>
+            ${event.image_url ? `<img src="${event.image_url}" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px;">` : ''}
+            <p style="margin: 5px 0; font-size: 0.85rem; color: #4a5568;">${event.description}</p>
+            <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📅</strong> ${event.date}${event.time ? ' at ' + event.time : ''}</p>
+            <p style="margin: 5px 0; font-size: 0.85rem;"><strong>📍</strong> ${event.location_name}</p>
+            
+            <button class="travel-toggle-btn" id="travel-btn-${event.id}" onclick="toggleTravelOptions(${event.id})">
+                🚗 View Travel Options
+            </button>
+            
+            <div id="travel-section-${event.id}" class="travel-section">
+                <div id="travel-info-${event.id}">
+                    <div class="travel-loading">⏳ Loading travel options...</div>
                 </div>
-            `
-        });
+            </div>
+            
+            <a href="/events/${event.id}/" style="display:block; margin-top:10px; background:#2563eb; color:#fff; padding:10px 14px; border-radius:8px; text-decoration:none; font-size:0.85rem; text-align:center; font-weight: 600;">
+                View Full Details →
+            </a>
+        </div>
+    `
+});
 
         marker.addListener("click", () => {
             if (activeInfoWindow) activeInfoWindow.close();
             infowindow.open(map, marker);
             activeInfoWindow = infowindow;
+            lastOpenedEventId = event.id;
+            if (window.loadEventTravelOptions) {
+                window.loadEventTravelOptions(event.id);
+            }
         });
 
         // Extend map bounds to include this marker
@@ -196,30 +463,289 @@ function initMap() {
     }
 }
 </script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('event-filters');
+    const shareBtn = document.getElementById('share-location-btn');
+    const manualBtn = document.getElementById('location-search-btn');
+    const manualInput = document.getElementById('manual-location-input');
+    const statusEl = document.getElementById('location-status');
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const latInput = document.createElement('input');
-            latInput.type = 'hidden';
-            latInput.name = 'lat';
-            latInput.value = position.coords.latitude;
+    const latInput = document.createElement('input');
+    latInput.type = 'hidden';
+    latInput.name = 'lat';
+    form.appendChild(latInput);
 
-            const lngInput = document.createElement('input');
-            lngInput.type = 'hidden';
-            lngInput.name = 'lng';
-            lngInput.value = position.coords.longitude;
+    const lngInput = document.createElement('input');
+    lngInput.type = 'hidden';
+    lngInput.name = 'lng';
+    form.appendChild(lngInput);
 
-            form.appendChild(latInput);
-            form.appendChild(lngInput);
+    function updateHiddenLocation(lat, lng) {
+        latInput.value = lat;
+        lngInput.value = lng;
+    }
 
-            // Optional: submit automatically on page load
-            // form.submit();
+    function updateLocationStatus(message, isError = false) {
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.className = isError
+            ? 'text-danger small mb-0 mt-2'
+            : 'text-success small mb-0 mt-2';
+    }
+
+    let manualGeocoder = null;
+    function ensureGeocoder() {
+        if (!manualGeocoder && window.google && window.google.maps) {
+            manualGeocoder = new google.maps.Geocoder();
+        }
+        return manualGeocoder;
+    }
+
+    function applyLocation(lat, lng, message) {
+        if (typeof lat === 'number' && typeof lng === 'number') {
+            updateHiddenLocation(lat, lng);
+            if (window.setEventsMapUserLocation) {
+                window.setEventsMapUserLocation(lat, lng);
+            }
+            updateLocationStatus(message || 'Location shared.');
+            if (window.refreshTravelInfo) {
+                window.refreshTravelInfo();
+            }
+        }
+    }
+
+    function handleGeolocationSuccess(position) {
+        applyLocation(position.coords.latitude, position.coords.longitude, 'Using your current location.');
+    }
+
+    function handleGeolocationFailure(message) {
+        updateLocationStatus(message || 'Unable to retrieve location.', true);
+    }
+
+    function requestGeolocation() {
+        if (!navigator.geolocation) {
+            handleGeolocationFailure('Geolocation is not supported by your browser.');
+            return;
+        }
+        updateLocationStatus('Requesting device location...');
+        navigator.geolocation.getCurrentPosition(
+            handleGeolocationSuccess,
+            () => handleGeolocationFailure('Could not get your location. Try again or use an address.')
+        );
+    }
+
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function() {
+            requestGeolocation();
         });
     }
+
+    if (manualBtn) {
+        manualBtn.addEventListener('click', function() {
+            const address = manualInput && manualInput.value ? manualInput.value.trim() : '';
+            if (!address) {
+                updateLocationStatus('Enter an address or landmark first.', true);
+                return;
+            }
+            const geocoder = ensureGeocoder();
+            if (!geocoder) {
+                updateLocationStatus('Map is still loading. Try again shortly.', true);
+                return;
+            }
+            updateLocationStatus('Looking up the address...');
+            geocoder.geocode({ address }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const location = results[0].geometry.location;
+                    applyLocation(location.lat(), location.lng(), `Location set to ${results[0].formatted_address}.`);
+                } else {
+                    updateLocationStatus('Address not found. Try a different query.', true);
+                }
+            });
+        });
+    }
+
+    requestGeolocation();
 });
 </script>
+<script>
+// Travel options functionality
+const mapElement = document.getElementById('map');
+const mapDataset = mapElement && mapElement.dataset;
+const parsedLat = mapDataset && mapDataset.userLat ? parseFloat(mapDataset.userLat) : NaN;
+const parsedLng = mapDataset && mapDataset.userLng ? parseFloat(mapDataset.userLng) : NaN;
+
+const eventsMapUserLocation = {
+    lat: Number.isFinite(parsedLat) ? parsedLat : null,
+    lng: Number.isFinite(parsedLng) ? parsedLng : null,
+};
+
+const travelCache = {};
+let lastOpenedEventId = null;
+
+function hasUserLocation() {
+    return eventsMapUserLocation.lat !== null && eventsMapUserLocation.lng !== null;
+}
+
+function setEventsMapUserLocation(lat, lng) {
+    if (typeof lat === 'number' && typeof lng === 'number') {
+        eventsMapUserLocation.lat = lat;
+        eventsMapUserLocation.lng = lng;
+        Object.keys(travelCache).forEach(key => delete travelCache[key]);
+    }
+}
+
+window.setEventsMapUserLocation = setEventsMapUserLocation;
+
+function renderTravelOptions(container, travelData) {
+    if (!container) return;
+    
+    const travelOptions = travelData.travel_options || {};
+    let html = '<div class="travel-cards-grid">';
+    
+    const modes = [
+        { key: 'drive', priority: 1 },
+        { key: 'uber', priority: 2 },
+        { key: 'lyft', priority: 3 },
+        { key: 'transit', priority: 4 },
+        { key: 'walk', priority: 5 },
+        { key: 'bicycle', priority: 6 }
+    ];
+    
+    modes.forEach(mode => {
+        const option = travelOptions[mode.key];
+        
+        if (option && option.available) {
+            let deepLink = option.deep_link || '#';
+            let distanceDisplay = option.distance_miles ? option.distance_miles.toFixed(1) + ' mi' : option.distance.split('(')[0].trim();
+            
+            // For Uber and Lyft, show logo instead of text title
+            let titleHtml = '';
+            if (mode.key === 'uber') {
+                // Uber logo SVG (black square with white "U")
+                titleHtml = '<div class="travel-card-logo" style="height: 24px; display: flex; align-items: center;"><svg width="50" height="24" viewBox="0 0 50 24" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="24" rx="4" fill="#000"/><text x="25" y="17" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Uber</text></svg></div>';
+            } else if (mode.key === 'lyft') {
+                // Lyft logo SVG (pink background with white text)
+                titleHtml = '<div class="travel-card-logo" style="height: 24px; display: flex; align-items: center;"><svg width="50" height="24" viewBox="0 0 50 24" xmlns="http://www.w3.org/2000/svg"><rect width="50" height="24" rx="4" fill="#FF00BF"/><text x="25" y="17" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle" letter-spacing="1px">LYFT</text></svg></div>';
+            } else {
+                titleHtml = `<h4 class="travel-card-title">${option.mode_display}</h4>`;
+            }
+            
+            html += `
+                <a href="${deepLink}" class="travel-card" data-mode="${mode.key}" target="_blank">
+                    <div class="travel-card-header">
+                        <div class="travel-card-icon">${option.icon}</div>
+                        ${titleHtml}
+                    </div>
+                    <div class="travel-card-body">
+                        <div class="travel-card-row">
+                            <span class="travel-card-label">ETA</span>
+                            <span class="travel-card-value">${option.duration}</span>
+                        </div>
+                        <div class="travel-card-row">
+                            <span class="travel-card-label">Distance</span>
+                            <span class="travel-card-value">${distanceDisplay}</span>
+                        </div>`;
+            
+            html += `</div>`;
+            
+            if (mode.key === 'drive') {
+                html += `<div class="travel-card-cost">Gas: ${option.gas_cost.formatted}</div>`;
+            } else if (option.cost) {
+                const costClass = option.cost.amount === 0 ? 'free' : '';
+                const costDisplay = option.cost.range || option.cost.formatted;
+                html += `<div class="travel-card-cost ${costClass}">${costDisplay}</div>`;
+            }
+            
+            html += `</a>`;
+        } else {
+            const modeNames = { drive: 'Drive', uber: 'Uber', lyft: 'Lyft', transit: 'Transit', walk: 'Walk', bicycle: 'Bike' };
+            const modeIcons = { drive: '🚗', transit: '🚌', walk: '🚶', bicycle: '🚴' };
+            
+            html += `
+                <div class="travel-card unavailable" data-mode="${mode.key}">
+                    <div class="travel-card-header">
+                        <div class="travel-card-icon">${modeIcons[mode.key]}</div>
+                        <h4 class="travel-card-title">${modeNames[mode.key]}</h4>
+                    </div>
+                    <div class="travel-card-unavailable">Not available</div>
+                </div>`;
+        }
+    });
+    
+    html += '</div>';
+    
+    // Add warning about estimated prices
+    html += '<div class="travel-price-warning" style="margin-top: 12px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 0.75rem; color: #856404; text-align: center;">';
+    html += '⚠️ <strong>Note:</strong> All prices are estimates and may vary based on traffic, demand, and other factors.';
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+function toggleTravelOptions(eventId) {
+    const section = document.getElementById(`travel-section-${eventId}`);
+    const button = document.getElementById(`travel-btn-${eventId}`);
+    
+    if (!section || !button) return;
+    
+    const isShowing = section.classList.contains('show');
+    
+    if (isShowing) {
+        section.classList.remove('show');
+        button.innerHTML = '🚗 View Travel Options';
+    } else {
+        section.classList.add('show');
+        button.innerHTML = '❌ Hide Travel Options';
+        if (window.loadEventTravelOptions) {
+            window.loadEventTravelOptions(eventId);
+        }
+    }
+}
+
+async function loadEventTravelOptions(eventId) {
+    const container = document.getElementById(`travel-info-${eventId}`);
+    if (!container) return;
+
+    if (!hasUserLocation()) {
+        container.innerHTML = '<div class="travel-loading">Share your location to view travel options...</div>';
+        return;
+    }
+
+    if (travelCache[eventId]) {
+        renderTravelOptions(container, travelCache[eventId]);
+        return;
+    }
+
+    container.innerHTML = '<div class="travel-loading">⏳ Calculating routes...</div>';
+
+    try {
+        const response = await fetch(`/events/${eventId}/travel-options/?origin_lat=${eventsMapUserLocation.lat}&origin_lng=${eventsMapUserLocation.lng}`);
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (!data.success) throw new Error(data.error || 'Failed to load travel options');
+        
+        travelCache[eventId] = data;
+        renderTravelOptions(container, data);
+        
+    } catch (error) {
+        console.error('Travel options error:', error);
+        container.innerHTML = '<div class="travel-error">Unable to load travel options at this time.</div>';
+    }
+}
+
+window.loadEventTravelOptions = loadEventTravelOptions;
+window.toggleTravelOptions = toggleTravelOptions;
+window.refreshTravelInfo = function() {
+    if (lastOpenedEventId) {
+        loadEventTravelOptions(lastOpenedEventId);
+    }
+};
+</script>
+
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap"></script>
 {% endblock %}
