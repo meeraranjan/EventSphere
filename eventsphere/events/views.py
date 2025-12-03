@@ -104,10 +104,12 @@ def edit_event(request, event_id):
 
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES, instance=event)
+
         if form.is_valid():
+            original_event = Event.objects.get(pk=event.pk)
+
             updated_event = form.save(commit=False)
 
-            # Only re-geocode if location or city changed
             if 'location' in form.changed_data or 'city' in form.changed_data:
                 full_address = f"{updated_event.location}, {updated_event.city}" if updated_event.city else updated_event.location
                 lat, lng, _ = geocode_address(full_address)
@@ -115,6 +117,88 @@ def edit_event(request, event_id):
                 updated_event.longitude = lng
 
             updated_event.save()
+
+            notify = bool(request.POST.get("notify_attendees"))
+
+            if notify:
+                field_labels = {
+                    "title": "Title",
+                    "description": "Description",
+                    "location": "Location",
+                    "city": "City",
+                    "date": "Date",
+                    "time": "Time",
+                    "price": "Price",
+                    "ticket_url": "Ticket link",
+                    "capacity": "Capacity",
+                    "image": "Image",
+                    "category": "Category",
+                }
+
+                change_lines = []
+                for name in form.changed_data:
+                    if name in ["latitude", "longitude"]:
+                        continue
+
+                    old_val = getattr(original_event, name, None)
+                    new_val = getattr(updated_event, name, None)
+
+                    if name == "category":
+                        old_val = dict(Event.CATEGORY_CHOICES).get(old_val, old_val)
+                        new_val = dict(Event.CATEGORY_CHOICES).get(new_val, new_val)
+
+                    label = field_labels.get(name, name.replace("_", " ").title())
+                    change_lines.append(f"- {label}: {old_val} → {new_val}")
+
+                if not change_lines:
+                    change_text = "Details of the changes are not available."
+                else:
+                    change_text = "\n".join(change_lines)
+
+                rsvps = RSVP.objects.filter(
+                    event=updated_event,
+                    status__in=[RSVP.GOING, RSVP.INTERESTED],
+                ).select_related("attendee")
+
+                recipient_list = []
+                for r in rsvps:
+                    email = (r.contact_email or getattr(r.attendee, "email", "") or "").strip()
+                    if email:
+                        recipient_list.append(email)
+                        
+                recipient_list = sorted(set(recipient_list))
+
+                if recipient_list:
+                    organizer_email = updated_event.organizer.email
+                    if organizer_email:
+                        recipient_list.append(organizer_email)
+
+                    recipient_list = sorted(set(recipient_list))
+
+                    subject = f"Update to event '{updated_event.title}'"
+                    message = (
+                        f"Hello,\n\n"
+                        f"The event '{updated_event.title}' that you RSVP'd to has been updated.\n\n"
+                        f"Changes:\n{change_text}\n\n"
+                        f"Event details:\n"
+                        f"- Date: {updated_event.date}\n"
+                        f"- Time: {updated_event.time or 'TBA'}\n"
+                        f"- Location: {updated_event.location}, {updated_event.city or ''}\n\n"
+                        f"— EventSphere Team"
+                    )
+
+                    print("[DEBUG] Sending update email to:", recipient_list)
+
+                    try:
+                        send_mail(
+                            subject,
+                            message,
+                            settings.DEFAULT_FROM_EMAIL,
+                            recipient_list,
+                        )
+                    except Exception as e:
+                        print(f"[Email Error] Could not send event update notifications: {e}")
+
             messages.success(request, f"'{updated_event.title}' updated successfully!")
             return redirect('my_events')
         else:
@@ -210,6 +294,57 @@ def _require_event_organizer_or_403(request, event_id):
     if not (request.user.is_staff or request.user.is_superuser or event.organizer_id == request.user.id):
         return None, HttpResponseForbidden("Access denied. Organizer only.")
     return event, None
+
+@login_required
+def event_send_reminder(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+
+    if not (request.user.is_staff or request.user.is_superuser or event.organizer_id == request.user.id):
+        return HttpResponseForbidden("Access denied. Organizer only.")
+
+    rsvps = RSVP.objects.filter(
+        event=event,
+        status__in=[RSVP.GOING, RSVP.INTERESTED],
+    ).select_related("attendee")
+
+    recipient_list = []
+    for r in rsvps:
+        email = (r.contact_email or getattr(r.attendee, "email", "") or "").strip()
+        if email:
+            recipient_list.append(email)
+
+    organizer_email = event.organizer.email
+    if organizer_email:
+        recipient_list.append(organizer_email)
+
+    recipient_list = sorted(set(recipient_list))
+
+    if not recipient_list:
+        messages.warning(request, "No attendees with valid email addresses to remind.")
+        return redirect("my_events")
+
+    subject = f"Reminder: '{event.title}' is coming up"
+    message = (
+        f"Hello,\n\n"
+        f"This is a reminder for the event '{event.title}' that you RSVP'd to.\n\n"
+        f"Event details:\n"
+        f"- Date: {event.date}\n"
+        f"- Time: {event.time or 'TBA'}\n"
+        f"- Location: {event.location}, {event.city or ''}\n\n"
+        f"If you can no longer attend, you can update your RSVP in EventSphere.\n\n"
+        f"— EventSphere Team"
+    )
+
+    print("[DEBUG] Sending reminder email to:", recipient_list)
+
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
+        messages.success(request, f"Reminder sent to {len(recipient_list)} recipient(s).")
+    except Exception as e:
+        print(f"[Email Error] Could not send reminder emails: {e}")
+        messages.error(request, "Could not send reminder emails. Check server logs for details.")
+
+    return redirect("my_events")
 
 @login_required
 def event_attendees(request, event_id):
