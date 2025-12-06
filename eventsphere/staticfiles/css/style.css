@@ -1,63 +1,193 @@
+/* =========================
+   COLOR PALETTE
+   ========================= */
+:root {
+  --brown: #43240A;
+  --brown-light: #8B4513;
+  --yellow-soft: #f3d36b;
+  --yellow-bright: #ffd128;
+  --white: #ffffff;
+}
+
+
+/* =========================
+   GLOBAL FONT
+   ========================= */
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+
+/* =========================
+   BACKGROUND BANNER
+   ========================= */
 .bg-index {
   background: url("../img/background.jpg") no-repeat fixed;
-  background-size: 100% auto;
-}
-body {
-    font-family: 'Poppins', sans-serif;
+  background-size: cover;
+  background-position: center;
 }
 
-.navbar-brand {
-    font-size: 1.4rem;
-    letter-spacing: 1px;
+
+/* =========================
+   LOGO
+   ========================= */
+.logo-img {
+  width: 200px;
+  height: auto;
 }
 
-.navbar.bg-dark {
-    background-color: #43240A !important; /* brown */
+
+/* =========================
+   NAVBAR
+   ========================= */
+.navbar {
+  background-color: var(--brown) !important;
 }
 
-footer.bg-dark {
-    background-color: #43240A !important; /* brown */
+.navbar-brand img {
+  height: 70px;
 }
 
-/* Header styling */
+.nav-link {
+  color: var(--yellow-soft) !important;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: var(--yellow-bright) !important;
+}
+
+.nav-link.active {
+  color: var(--yellow-bright) !important;
+  border-bottom: 2px solid var(--yellow-bright);
+}
+
+
+/* =========================
+   HEADINGS
+   ========================= */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--brown-light);
+}
+
+
+/* =========================
+   HEADER TEXT INSIDE BANNER
+   ========================= */
 .masthead h2 {
-    color: white; /* heading in white */
+  color: var(--white);
 }
 
 .masthead p {
-    color: #8B4513; /* brown text for subheading */
+  color: var(--yellow-soft);
 }
 
-/* Content section text */
+
+/* =========================
+   CONTENT TEXT
+   ========================= */
 .centered-heading h4 {
-    color: #8B4513; /* brown text */
+  color: var(--brown-light);
 }
-/* Yellow button (Start New Conversation) */
+
+
+/* =========================
+   FOOTER (all yellow)
+   ========================= */
+footer.bg-dark {
+  background-color: var(--brown) !important;
+  color: var(--yellow-bright) !important;
+}
+footer.bg-dark a.text-light {
+    color: var(--yellow-bright) !important;
+}
+
+footer.bg-dark h5 {
+    color: var(--yellow-bright) !important;
+}
+
+footer a {
+  color: var(--yellow-soft) !important;
+  font-weight: 500;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
 .btn-yellow {
-    background-color: #F2C94C !important;
-    border-color: #F2C94C !important;
-    color: #4A2C2A !important;
+    background-color: var(--yellow-bright);
+    color: var(--brown) !important;
+    border: 2px solid var(--brown);
     font-weight: 600;
 }
+
 .btn-yellow:hover {
-    background-color: #e5b941 !important;
-    border-color: #e5b941 !important;
+    background-color: var(--yellow-soft);
+    border-color: var(--brown);
+    color: var(--brown) !important;
 }
 
-/* Brown button (Open Chat) */
-.btn-brown {
-    background-color: #4A2C2A !important;
-    border-color: #4A2C2A !important;
-    color: #fff !important;
+.card h1, 
+.card h2, 
+.card h3, 
+.card h4, 
+.card h5, 
+.card h6,
+.card-title {
+    color: var(--brown-light) !important;
+}
+
+/* Fix labels inside forms */
+.form-label {
+    color: var(--brown-light) !important;
     font-weight: 600;
 }
-.btn-brown:hover {
-    background-color: #3a201f !important;
-    border-color: #3a201f !important;
+
+/* Fix input styling */
+.form-control {
+    border: 2px solid var(--brown-light);
 }
 
-/* Small group badge styling */
-.small-badge {
-    font-size: 0.75rem;
-    padding: 4px 8px;
+.form-control:focus {
+    border-color: var(--brown) !important;
+    box-shadow: 0 0 5px var(--yellow-soft);
 }
+
+.card input,
+.card select,
+.card textarea {
+    border: 2px solid var(--brown-light) !important;
+    color: var(--brown) !important;
+}
+
+.card label {
+    color: var(--brown-light) !important;
+    font-weight: 600;
+}
+.card p, 
+.card strong, 
+.card span {
+    color: var(--brown-light) !important;
+}
+
+.badge.bg-success {
+    background-color: #66ff8a !important; /* optional: keep green or adjust */
+    color: var(--brown-light) !important;  /* brown text */
+}
+
+.badge.bg-warning {
+    background-color: #ffe597 !important;  /* Bootstrap yellow */
+    color: var(--brown) !important;        /* brown text */
+}
+
+.badge.bg-danger {
+    background-color: #ff7c89 !important;  /* Bootstrap red */
+    color: var(--brown-light) !important;  /* brown text */
+}
+
+/* Optional: slightly darker shades for hover effect */
+.badge:hover {
+    opacity: 0.85;
+}
+

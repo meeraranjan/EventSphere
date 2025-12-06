@@ -71,7 +71,7 @@
       </div>
     {% endfor %}
   {% else %}
-    <p>You haven’t created any events yet.</p>  
+    <p>You haven’t created any events yet.</p>
   {% endif %}
 </div>
 
@@ -89,13 +89,12 @@
         <p><strong>Time:</strong> <span id="eventTime"></span></p>
         <p><strong>Location:</strong> <span id="eventLocation"></span></p>
         <p><strong>RSVPs:</strong> <span id="eventRsvpCount">0</span></p>
-        <p><strong>Views:</strong> 0</p>
 
         <hr>
         <div class="d-grid gap-2">
-          <button class="btn btn-yellow btn-warning" id="sendReminderBtn">Send Reminder to All Attendees</button>
-          <button class="btn btn-yellow btn-secondary" id="exportListBtn">Export Attendee List</button>
-          <a id="ticketLink" href="#" target="_blank" class="btn btn-yellow btn-info text-white">Ticket Link</a>
+            <a href="#" class="btn btn-yellow btn-warning" id="sendReminderBtn">Send Reminder to All Attendees</a>
+            <a href="#" class="btn btn-yellow btn-secondary" id="exportListBtn">Export Attendee List</a>
+            <a href="#" id="ticketLink" class="btn btn-yellow btn-info text-white">Ticket Link</a>
         </div>
       </div>
     </div>
@@ -115,13 +114,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const location = button.getAttribute('data-location');
     const ticket = button.getAttribute('data-ticket');
     const reminderUrl = button.getAttribute('data-reminder-url') || null;
-
+    const rsvpCount = button.getAttribute('data-rsvp-count') || 0;
     currentReminderUrl = reminderUrl;
+    const exportUrl = button.getAttribute('data-export-url') || '#';
+    modal.querySelector('#exportListBtn').setAttribute('href', exportUrl);
 
     modal.querySelector('#eventTitle').textContent = title;
     modal.querySelector('#eventDate').textContent = date;
     modal.querySelector('#eventTime').textContent = time;
     modal.querySelector('#eventLocation').textContent = location;
+    modal.querySelector('#eventRsvpCount').textContent = rsvpCount;
 
     const ticketLink = modal.querySelector('#ticketLink');
     if (ticket && ticket !== 'None') {
@@ -136,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const reminderBtn = document.getElementById('sendReminderBtn');
   reminderBtn.addEventListener('click', () => {
     if (currentReminderUrl) {
-      window.location.href = currentReminderUrl; 
+      window.location.href = currentReminderUrl;
     } else {
       alert('No reminder URL available for this event.');
     }
@@ -144,7 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const exportBtn = document.getElementById('exportListBtn');
   exportBtn.addEventListener('click', () => {
-    alert('📄 Attendee list exported! (placeholder)');
+  const url = exportBtn.href;
+  if (url && url !== '#') {
+    window.location.href = url;
+  } else {
+    alert('No export URL available for this event.');
+  }
   });
 });
 </script>
